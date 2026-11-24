@@ -1,0 +1,1636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VERTREP Unit Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Styling: tools/artifacts/DESIGN.md (stringline tokens, Archivo, 28px controls). */
+:root {
+  --surface: #ffffff; --ground: #f5f7fa; --ground-hover: #eceff4;
+  --ink: #2e3440; --ink-muted: #616e88; --ink-faint: #7b879d; --ink-disabled: #9ba6b6;
+  --line: #e5e9f0; --line-strong: #d8dee9;
+  --accent: #4a6b94; --accent-hover: #3e5a7d; --accent-soft: #edf2f8; --accent-line: #c6d5e6; --on-accent: #ffffff;
+  --warning-strong: #8a672a; --ok-strong: #5b7b44; --danger-strong: #96434c;
+  --tip-bg: #2e3440; --tip-ink: #eceff4; --tip-link: #a9c2e0;
+  --view-ground: #f5f7fa;
+  --model: #c3cad5; --glass: #81a1c1; --rotor: #6b7588; --gear: #9a8f80; --crew: #b48a6a;
+  --edge: #2e3440; --attach: #bf616a; --hub: #5e81ac; --disc: #5e81ac; --winch: #d08770; --person: #5b7b44; --rope: #2e3440;
+  --ax-x: #bf616a; --ax-y: #5b7b44; --ax-z: #5e81ac;
+  --radius-control: 4px; --radius-card: 8px; --control-h: 28px;
+  /* ship top view: the same in both themes */
+  --sea: #2b3a55; --h1: #d8c79a; --h3: #d08770; --h10: #bf616a; --mast: #b48ead; --wire: #e07ad6;
+  --clear: #a3be8c; --low: #ebcb8b; --blocked: #bf616a; --spot: #88c0d0; --spotdisc: #eceff4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface: #3b4252; --ground: #2e3440; --ground-hover: #434c5e;
+    --ink: #eceff4; --ink-muted: #d8dee9; --ink-faint: #a7b1c2; --ink-disabled: #6b7588;
+    --line: #434c5e; --line-strong: #4c566a;
+    --accent: #81a1c1; --accent-hover: #93b1cf; --accent-soft: #46536a; --accent-line: #5a6f8c; --on-accent: #2e3440;
+    --warning-strong: #ebcb8b; --ok-strong: #a3be8c; --danger-strong: #d08a91;
+    --tip-bg: #eceff4; --tip-ink: #2e3440; --tip-link: #4a6b94;
+    --view-ground: #2b313c;
+    --model: #8b94a5; --glass: #6f8fb0; --rotor: #5c6577; --gear: #7d7466; --crew: #94735a;
+    --edge: #20242c; --attach: #d08a91; --hub: #88a8cc; --disc: #88a8cc; --winch: #e09a82; --person: #a3be8c; --rope: #eceff4;
+    --ax-x: #d08a91; --ax-y: #a3be8c; --ax-z: #88a8cc;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --surface: #3b4252; --ground: #2e3440; --ground-hover: #434c5e;
+  --ink: #eceff4; --ink-muted: #d8dee9; --ink-faint: #a7b1c2; --ink-disabled: #6b7588;
+  --line: #434c5e; --line-strong: #4c566a;
+  --accent: #81a1c1; --accent-hover: #93b1cf; --accent-soft: #46536a; --accent-line: #5a6f8c; --on-accent: #2e3440;
+  --warning-strong: #ebcb8b; --ok-strong: #a3be8c; --danger-strong: #d08a91;
+  --tip-bg: #eceff4; --tip-ink: #2e3440; --tip-link: #4a6b94;
+  --view-ground: #2b313c;
+  --model: #8b94a5; --glass: #6f8fb0; --rotor: #5c6577; --gear: #7d7466; --crew: #94735a;
+  --edge: #20242c; --attach: #d08a91; --hub: #88a8cc; --disc: #88a8cc; --winch: #e09a82; --person: #a3be8c; --rope: #eceff4;
+  --ax-x: #d08a91; --ax-y: #a3be8c; --ax-z: #88a8cc;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 400 11px/1.45 "Archivo", ui-sans-serif, system-ui, sans-serif; overflow-x: hidden; }
+a { color: var(--accent); }
+a:hover { color: var(--accent-hover); }
+[hidden] { display: none !important; }
+.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-areas: "side view"; gap: 12px; padding-block: 12px; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); align-items: start; }
+.side { grid-area: side; display: flex; flex-direction: column; gap: 12px; min-width: 0; max-height: calc(100vh - 24px); overflow-y: auto; scrollbar-width: thin; }
+.viewwrap { grid-area: view; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 12px; min-width: 0; }
+.card h1 { font-size: 14px; font-weight: 700; margin: 0 0 4px; }
+.card p { margin: 0; color: var(--ink-muted); }
+.card h2 { font-size: 12px; font-weight: 600; margin: 0 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--control-h); }
+.card h2 > span { display: inline-flex; align-items: center; gap: 4px; }
+.label { font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row.split { justify-content: space-between; }
+.row + .row, .drop + .row { margin-top: 8px; }
+button, input, textarea, select { font: inherit; color: var(--ink); }
+button { height: var(--control-h); padding: 0 8px; font-size: 11px; font-weight: 600; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap; transition: background-color .1s, color .1s; }
+.btn { background: var(--surface); color: var(--ink-muted); border: 1px solid var(--line); }
+.btn:hover { background: var(--ground); color: var(--ink); }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn:disabled, .btn.primary:disabled { background: var(--line); color: var(--ink-disabled); border-color: transparent; cursor: not-allowed; }
+.ghost { background: transparent; color: var(--ink-muted); border: 1px solid transparent; }
+.ghost:hover { background: var(--ground-hover); color: var(--ink); }
+.icon { width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+:where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg { display: inline-flex; align-items: center; background: var(--line); border-radius: 6px; padding: 2px; height: var(--control-h); }
+.seg button { height: 100%; padding: 0 10px; border: 0; background: transparent; color: var(--ink-muted); font-weight: 400; }
+.seg button:hover { color: var(--ink); }
+.seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: 0 1px 2px rgb(46 52 64 / .12); }
+.seg button:disabled { color: var(--ink-disabled); cursor: not-allowed; }
+/* files: a dashed border means a drop zone */
+.drop { border: 1px dashed var(--line-strong); border-radius: var(--radius-card); padding: 4px 4px 4px 8px; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.slot { display: grid; grid-template-columns: 30px minmax(0, 1fr) 24px; gap: 8px; align-items: center; min-height: 24px; }
+.slot .k { color: var(--ink-faint); }
+.slot .v { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot .v.empty { color: var(--ink-faint); }
+.drop .btn { margin: 4px 0; }
+.notes { margin-top: 8px; font-size: 10px; color: var(--warning-strong); }
+.notes:empty { display: none; }
+/* position steppers */
+.axis { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; align-items: center; }
+.axis + .axis, .row + .axis { margin-top: 4px; }
+.axis b { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.stepper { display: flex; }
+.stepper button { width: 32px; padding: 0; background: var(--surface); color: var(--ink-muted); border: 1px solid var(--line); border-radius: 0; margin-left: -1px; }
+.stepper button:hover { background: var(--ground); color: var(--ink); position: relative; }
+.stepper button:first-child { border-radius: var(--radius-control) 0 0 var(--radius-control); margin-left: 0; }
+.stepper button:last-child { border-radius: 0 var(--radius-control) var(--radius-control) 0; }
+.stepper button:disabled { color: var(--ink-disabled); background: var(--surface); cursor: not-allowed; }
+.stepper input { flex: 1; min-width: 0; height: var(--control-h); margin-left: -1px; padding: 0 6px; text-align: center; font-variant-numeric: tabular-nums; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 0; outline: none; position: relative; -moz-appearance: textfield; }
+.stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper input:focus { border-color: var(--accent); z-index: 1; }
+.stepper input:disabled { background: var(--line); color: var(--ink-disabled); }
+/* parameters: one row per key */
+.fields { display: grid; gap: 4px; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: var(--control-h); }
+.field .key { font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.field input, .field select, .multi-btn, .pick-btn { height: var(--control-h); padding: 0 6px; font-size: 11px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-control); outline: none; }
+.field input { width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+.field input.wide { width: 180px; text-align: left; }
+.field select, .multi-btn { width: 128px; }
+.multi-btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: 400; color: var(--ink); }
+.multi-btn::after { content: "\25BE"; color: var(--ink-faint); }
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input::placeholder { color: var(--ink-disabled); }
+.field .pair { display: inline-flex; gap: 4px; align-items: center; }
+.field .val { font-variant-numeric: tabular-nums; color: var(--ink-muted); max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.multi-panel { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: var(--radius-card); padding: 4px 8px 8px; }
+.multi-list { max-height: 240px; overflow-y: auto; scrollbar-width: thin; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.multi-btn { white-space: nowrap; overflow: hidden; }
+.multi-panel .row { margin: 4px 0; gap: 4px; }
+.multi-panel label { display: flex; align-items: center; gap: 6px; min-height: 22px; cursor: pointer; }
+.multi-panel label small { color: var(--ink-faint); font-size: 10px; }
+.multi-panel hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+.multi-panel input[type=text] { flex: 1; min-width: 0; height: var(--control-h); padding: 0 6px; font-size: 11px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-control); outline: none; }
+:where(input[type=checkbox]) { accent-color: var(--accent); }
+.row.end { justify-content: flex-end; margin-top: 8px; }
+.facts { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 4px 8px; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.facts:empty { display: none; }
+.facts dt { color: var(--ink-faint); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.facts dd.ok { color: var(--ok-strong); } .facts dd.warn { color: var(--warning-strong); } .facts dd.bad { color: var(--danger-strong); }
+textarea { display: block; width: 100%; min-height: 96px; margin-top: 8px; padding: 6px 8px; font-size: 11px; font-variant-numeric: tabular-nums; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-control); resize: vertical; white-space: pre; outline: none; }
+/* help: a dashed-underlined ? that shows a card on hover, and pins it on click */
+.help { height: auto; padding: 0 1px; border: 0; background: transparent; color: var(--ink-faint); font-weight: 600; font-size: 11px; text-decoration: underline dashed; text-underline-offset: 2px; cursor: help; }
+.help:hover, .help[aria-expanded="true"] { color: var(--accent); }
+.tip { position: fixed; z-index: 10000; max-width: 280px; padding: 6px 9px; background: var(--tip-bg); color: var(--tip-ink); font-size: 11px; font-weight: 400; line-height: 1.4; border-radius: var(--radius-control); box-shadow: 0 6px 20px rgb(46 52 64 / .25); white-space: normal; }
+.tip p { margin: 0; color: inherit; }
+.tip p + p { margin-top: 6px; }
+.tip a { color: var(--tip-link); }
+/* main view */
+.viewwrap { position: relative; background: var(--view-ground); border: 1px solid var(--line); border-radius: var(--radius-card); overflow: hidden; height: calc(100vh - 24px); min-height: 360px; }
+.viewwrap.ship { background: var(--sea); }
+.stage, .stage canvas.main { position: absolute; inset: 0; width: 100%; height: 100%; }
+.stage canvas.main { display: block; touch-action: none; }
+#view2 { cursor: crosshair; }
+#view2.offship { cursor: grab; }
+#view2.onhandle { cursor: var(--rotate-cursor, grab); }
+#view2.panning { cursor: grabbing; }
+.viewbar { position: absolute; right: 8px; bottom: 8px; }
+#legend { position: absolute; left: 8px; bottom: 8px; width: 140px; height: 140px; pointer-events: none; }
+.legend2 { position: absolute; left: 8px; bottom: 8px; display: grid; grid-template-columns: auto auto; gap: 3px 12px; padding: 6px 8px; background: rgb(46 52 64 / .78); color: #eceff4; border-radius: var(--radius-control); font-size: 10px; pointer-events: none; }
+.legend2 span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.legend2 i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend2 .head { grid-column: 1 / -1; font-weight: 600; }
+@media (max-width: 820px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "view" "side"; }
+  .side { max-height: none; overflow: visible; }
+  .viewwrap { height: 60vh; }
+  .viewbar { left: 8px; right: 8px; display: flex; justify-content: flex-end; overflow-x: auto; }
+  #legend { width: 96px; height: 96px; bottom: 44px; }
+  .legend2 { bottom: 44px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="card">
+      <h1>VERTREP Unit Setup</h1>
+      <p>Use this tool to set up the [HelicopterLoading] parameters on your modded helicopters and ships for compatibility with <a href="https://steamcommunity.com/workshop/filedetails/discussion/3843863472" target="_blank" rel="noopener">VERTREP</a>. Upload a model and .ini file to begin.</p>
+    </div>
+    <div class="card">
+      <h2>Unit model</h2>
+      <div class="drop" id="drop">
+        <div id="slots"></div>
+        <button class="btn" id="choose">Choose files</button>
+        <input type="file" id="files" multiple accept=".ini,.obj" hidden>
+      </div>
+      <div class="notes" id="loadLog"></div>
+    </div>
+    <div class="card" id="winchCard" hidden>
+      <h2>Winch position <button class="btn" id="reset">Reset</button></h2>
+      <div class="axis"><b>X</b><div class="stepper"><button data-ax="0" data-d="-0.001" aria-label="X big step down">&minus;&minus;</button><button data-ax="0" data-d="-0.0001" aria-label="X small step down">&minus;</button><input type="number" id="px" step="0.0001" aria-label="X"><button data-ax="0" data-d="0.0001" aria-label="X small step up">+</button><button data-ax="0" data-d="0.001" aria-label="X big step up">++</button></div></div>
+      <div class="axis"><b>Y</b><div class="stepper"><button data-ax="1" data-d="-0.001" aria-label="Y big step down">&minus;&minus;</button><button data-ax="1" data-d="-0.0001" aria-label="Y small step down">&minus;</button><input type="number" id="py" step="0.0001" aria-label="Y"><button data-ax="1" data-d="0.0001" aria-label="Y small step up">+</button><button data-ax="1" data-d="0.001" aria-label="Y big step up">++</button></div></div>
+      <div class="axis"><b>Z</b><div class="stepper"><button data-ax="2" data-d="-0.001" aria-label="Z big step down">&minus;&minus;</button><button data-ax="2" data-d="-0.0001" aria-label="Z small step down">&minus;</button><input type="number" id="pz" step="0.0001" aria-label="Z"><button data-ax="2" data-d="0.0001" aria-label="Z small step up">+</button><button data-ax="2" data-d="0.001" aria-label="Z big step up">++</button></div></div>
+      <div class="row split" style="margin-top:8px">
+        <span class="label">Winch Location <button class="help" data-tip-for="helpSide" aria-label="About winch location" aria-expanded="false">?</button></span>
+        <div class="seg" id="sideSeg"><button data-side="Port">Port</button><button data-side="Starboard" class="on">Starboard</button></div>
+      </div>
+    </div>
+    <div class="card" id="spotCard" hidden>
+      <h2><span>Hover spot <button class="help" data-tip="ship.HoverSpot" aria-label="About HoverSpot" aria-expanded="false">?</button></span> <button class="btn" id="spotReset">Reset</button></h2>
+      <div id="spotControls">
+        <div class="axis"><b>X</b><div class="stepper"><button data-sax="0" data-d="-0.01" aria-label="X big step down">&minus;&minus;</button><button data-sax="0" data-d="-0.001" aria-label="X small step down">&minus;</button><input type="number" id="sx" step="0.001" aria-label="X"><button data-sax="0" data-d="0.001" aria-label="X small step up">+</button><button data-sax="0" data-d="0.01" aria-label="X big step up">++</button></div></div>
+        <div class="axis"><b>Z</b><div class="stepper"><button data-sax="2" data-d="-0.01" aria-label="Z big step down">&minus;&minus;</button><button data-sax="2" data-d="-0.001" aria-label="Z small step down">&minus;</button><input type="number" id="sz" step="0.001" aria-label="Z"><button data-sax="2" data-d="0.001" aria-label="Z small step up">+</button><button data-sax="2" data-d="0.01" aria-label="Z big step up">++</button></div></div>
+      </div>
+      <dl class="facts" id="spotFacts"></dl>
+    </div>
+    <div class="card" id="paramsCard" hidden>
+      <h2>Parameters</h2>
+      <div class="fields" id="params"></div>
+    </div>
+    <div class="card" id="exportCard" hidden>
+      <h2><span>Export <button class="help" data-tip-for="helpExport" aria-label="About export" aria-expanded="false">?</button></span>
+        <span class="seg" id="modeSeg"><button data-mode="update" class="on">Update</button><button data-mode="extend">Extend</button></span></h2>
+      <div class="field" id="targetRow" hidden>
+        <span class="key">#!extend</span>
+        <input type="text" id="target" class="wide" spellcheck="false" aria-label="File to extend">
+      </div>
+      <textarea id="out" readonly spellcheck="false" aria-label="Export"></textarea>
+      <div class="row end"><button class="btn" id="copy">Copy</button><button class="btn primary" id="download">Download .ini</button></div>
+    </div>
+  </aside>
+  <div class="viewwrap" id="viewwrap">
+    <div class="stage" id="stage3">
+      <canvas class="main" id="view3" aria-label="3D view of the helicopter"></canvas>
+      <canvas id="legend" aria-hidden="true"></canvas>
+      <div class="viewbar">
+        <div class="seg" id="viewSeg3">
+          <button data-view="default" class="on">Default</button><button data-view="port">Port</button><button data-view="stbd">Stbd</button><button data-view="top">Top</button><button data-view="front">Front</button><button data-view="rear">Rear</button>
+        </div>
+      </div>
+    </div>
+    <div class="stage" id="stage2" hidden>
+      <canvas class="main" id="view2" aria-label="Top view of the ship"></canvas>
+      <div class="legend2" aria-hidden="true">
+        <span class="head">Bow &#9654; &nbsp;Starboard &#9660;</span>
+        <span><i style="background:var(--h1)"></i>1&ndash;3 m</span><span><i style="background:var(--clear)"></i>Clear</span>
+        <span><i style="background:var(--h3)"></i>3&ndash;10 m</span><span><i style="background:var(--low)"></i>Low</span>
+        <span><i style="background:var(--h10)"></i>Over 10 m</span><span><i style="background:var(--blocked)"></i>Blocked</span>
+        <span><i style="background:var(--mast)"></i>Mast</span><span><i style="background:var(--wire)"></i>Wires</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<div hidden>
+  <div id="helpSide">
+    <p>The side of the helicopter where the winch is located. On most ships, this also affects the direction the helicopter approaches from. A helicopter with the winch on the starboard side will approach the ship from left to right, so that the hoist operator can see the target and provide instructions to the pilot.</p>
+    <p>For helicopters with winches on the stern ramp, direction is your preference.</p>
+  </div>
+  <div id="helpExport">
+    <p>Update: add this to the unit's .ini file. Extend: save them as a new .ini file in a mod folder, to add VERTREP support to a unit from a mod you downloaded.</p>
+    <p><a href="https://steamcommunity.com/workshop/filedetails/discussion/3843863472/569303665182070519/" target="_blank" rel="noopener">See the guide for details.</a></p>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+// VERTREP Unit Setup: the Winch Tuner (helicopters) and the Hover Spot Review (ships) in one page,
+// writing the whole [HelicopterLoading] section. Key names and help text follow the
+// "Information for modders" section of mod/helicopter-loading/DESIGN.md.
+const M_PER_UNIT = 67.200066;   // game units to meters (the game's own figure; helicopter winch)
+const LINE_M = 15;              // hoist line shown under the winch, meters
+// ship analysis constants (mod/helicopter-loading/research/analyze.py and render_review.py)
+const G = 0.0025;               // grid cell, model units
+const MPU = 68.5;               // meters per model unit for ship models (research/hover-spots.md)
+const MAST_MAX_CELLS = 40, MAST_MIN_M = 3.0, RMAX = 0.6;
+const NONSTRUCT = ["crew", "gunner", "landing_light", "tiedown", "lugs", "airwing", "deck_lights", "people", "sailor", "_men", "lights"];
+const SKIP = /(coll|collider|_lod\d|cavitation|smoke|wake|shadow|animatedflag|signals|_flag|^object\d+$|hullnumber|emblem)/i;
+const DAMAGED = /_d(_|$)|_dmg|_damaged/i;
+
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+// ---------- storage: the only two functions that touch it ----------
+const STORE_KEY = "vertrep-unit-setup-v2";
+function loadState() { try { const r = window.localStorage.getItem(STORE_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function saveState(s) { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) { /* storage unavailable */ } }
+// state.units[key] = { p: winch [x,y,z] meters (.ini frame), side, touched, spot: {x, z, touched}, f: {key: value}, target }
+let state = loadState();
+if (!state || typeof state !== "object" || !state.units || typeof state.units !== "object") state = { units: {} };
+if (state.mode !== "extend") state.mode = "update";
+const persist = () => saveState(state);
+const validP = p => Array.isArray(p) && p.length === 3 && p.every(v => typeof v === "number" && isFinite(v));
+
+// ---------- a modder's own files ----------
+// Read the way the game reads them: .ini like IniHandler (first section and first key win,
+// comments at ; // #), .obj like its OBJ loader (objects split at o/g, X negated only with
+// ",CORRECT_OBJ_ORIENTATION"), model built like ObjectBaseLoader.BuildModelHierarchy.
+// Model frame: unit root, Unity units (+X starboard, +Y up, +Z forward), as AttachmentPointPosition.
+function parseIni(text) {
+  const sections = new Map(); let cur = null;
+  for (const raw of text.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+    const t = raw.split(/;|\/\/|#/)[0].trim();
+    if (!t) continue;
+    const m = t.match(/^\[(.*)\]/);
+    if (m) {
+      const name = m[1];
+      cur = (/^[ =\-*]/.test(name) || sections.has(name)) ? null : new Map();
+      if (cur) sections.set(name, cur);
+      continue;
+    }
+    if (!cur || t.indexOf("=") < 0) continue;
+    const parts = t.split("=");
+    const key = parts[0].trim().toLowerCase();
+    if (!cur.has(key)) cur.set(key, parts.slice(1).map(s => s.trim()).join("="));
+  }
+  const get = (sec, key, def) => { const s = sections.get(sec); const v = s && s.get(key.toLowerCase()); return v === undefined ? def : v; };
+  const vec = (sec, key, def) => {
+    const v = get(sec, key); const p = v === undefined ? [] : v.split(",").map(Number);
+    return (p.length === 3 && p.every(isFinite)) ? p : (def || [0, 0, 0]);
+  };
+  const submodels = () => {
+    if (sections.has("Submodels")) return [...sections.get("Submodels").values()].filter(Boolean);
+    const out = [], n = parseInt(get("Models", "NumberOfSubModels", "0"), 10) || 0;
+    for (let j = 1; j <= n; j++) { const v = get("Models", "SubModel" + j); if (v) out.push(v); }
+    return out;
+  };
+  return { sections, get, vec, submodels, has: s => sections.has(s) };
+}
+
+function parseObj(text, mirrorX) {
+  const V = [], objs = new Map();
+  let cur = null;
+  const use = name => { if (!objs.has(name)) objs.set(name, { name, idx: [] }); cur = objs.get(name); };
+  use("default");
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line[0] === "#") continue;
+    const sp = line.search(/\s/);
+    const kw = sp < 0 ? line : line.slice(0, sp);
+    const rest = sp < 0 ? "" : line.slice(sp + 1).trim();
+    if (kw === "v") {
+      const p = rest.split(/\s+/).map(Number);
+      V.push(mirrorX ? -p[0] : p[0], p[1], p.length > 2 ? p[2] : 0);
+    } else if (kw === "o" || kw === "g") {
+      use(rest);
+    } else if (kw === "f") {
+      const n = V.length / 3;
+      const f = rest.split(/\s+/).map(w => { let i = parseInt(w, 10); if (i < 0) i = n - i; return i - 1; });
+      for (let k = 2; k < f.length; k++) cur.idx.push(f[0], f[k - 1], f[k]);
+    }
+  }
+  const out = new Map();   // name -> {V: Float32Array (Unity units), T: Uint32Array}; empty objects are not built
+  for (const [name, o] of objs) {
+    if (!o.idx.length) continue;
+    const remap = new Map(), pos = [], T = new Uint32Array(o.idx.length);
+    o.idx.forEach((g, k) => {
+      if (!remap.has(g)) {
+        remap.set(g, pos.length / 3);
+        if (g >= 0 && g < n0()) pos.push(V[g * 3], V[g * 3 + 1], V[g * 3 + 2]); else pos.push(0, 0, 0);
+      }
+      T[k] = remap.get(g);
+    });
+    out.set(name, { V: new Float32Array(pos), T });
+  }
+  function n0() { return V.length / 3; }
+  return out;
+}
+
+function classify(name) {
+  const n = name.toLowerCase();
+  if (n.includes("disc") || n.includes("blur")) return "disc";
+  if (n.includes("glass") || n.includes("canopy")) return "glass";
+  if (n.includes("crew") || n.includes("pilot")) return "crew";
+  if (n.includes("blade") || n.includes("rotor") || n.includes("hub") || n.includes("swash")) return "rotor";
+  if (n.includes("gear") || n.includes("wheel") || n.includes("strut") || n.includes("float")) return "gear";
+  return "body";
+}
+const baseName = p => p.replace(/\\/g, "/").split("/").pop().toLowerCase();
+const stem = f => f.replace(/\.[^.]*$/, "");
+
+// files: {inis: [{name, text}], objs: [{name, text}]} -> one helicopter description (page frame, meters)
+function assembleUser(ini, iniName, objFiles, log) {
+  const parsed = new Map();   // file|mirror -> objects
+  const objFor = (file, mirror) => {
+    const k = file.name + "|" + mirror;
+    if (!parsed.has(k)) parsed.set(k, parseObj(file.text, mirror));
+    return parsed.get(k);
+  };
+  const findFile = path => objFiles.find(f => f.name.toLowerCase() === baseName(path));
+  const parts = [], objects = new Map(), missing = [];
+  let rootFile = null, mirror = false;
+  if (ini) {
+    const rr = ini.get("Models", "ResourcesRoot", "");
+    mirror = /CORRECT_OBJ_ORIENTATION/i.test(rr);
+    const rootName = rr.split(",")[0].trim();
+    rootFile = findFile(rootName);
+    if (!rootFile && objFiles.length && /\.obj$/i.test(rootName)) {   // the newest .obj, when none has the right name
+      rootFile = objFiles[0];
+      log.push(`Using ${rootFile.name} for ResourcesRoot=${rootName}.`);
+    }
+    if (!rootFile) log.push(objFiles.length ? `No loaded .obj matches ResourcesRoot=${rootName || "(none)"}.` : `No .obj loaded (ResourcesRoot=${rootName || "(none)"}); showing the .ini points only.`);
+  } else if (objFiles.length) {
+    rootFile = objFiles[0];
+    log.push("No .ini loaded: showing every object in the .obj where it is in the file.");
+  }
+  const root = rootFile ? objFor(rootFile, mirror) : new Map();
+  const bake = (name, mesh, M, submodel) => {
+    const W = new Float32Array(mesh.V.length), v = new THREE.Vector3();
+    for (let k = 0; k < mesh.V.length; k += 3) {
+      v.set(mesh.V[k], mesh.V[k + 1], mesh.V[k + 2]).applyMatrix4(M);
+      W[k] = v.x; W[k + 1] = v.y; W[k + 2] = v.z;
+    }
+    parts.push({ submodel, cat: classify(name), V: W, T: mesh.T });
+  };
+  const trs = (p, r, s) => new THREE.Matrix4().compose(new THREE.Vector3(...p),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0] * Math.PI / 180, r[1] * Math.PI / 180, r[2] * Math.PI / 180, "YXZ")),
+    new THREE.Vector3(...s));
+  if (!ini) {
+    for (const [name, mesh] of root) bake(name, mesh, new THREE.Matrix4(), name);
+  } else {
+    const place = (sub, meshName, parent, pos, rot, scale, visible, altFolder, rootMesh) => {
+      let mesh = null;
+      if (meshName) {
+        mesh = root.get(meshName) || null;
+        if (!mesh && altFolder) {
+          const f = findFile(rootMesh || "");
+          if (f) mesh = objFor(f, /CORRECT_OBJ_ORIENTATION/i.test(rootMesh)).get(meshName) || null;
+        }
+        // A part kept in another model file (usually one of the game's own) is skipped quietly;
+        // a part the .ini expects in this .obj but can't find is worth knowing (a name typo shows nothing in game).
+        if (!mesh && rootFile) { if (!altFolder) missing.push(meshName); return; }
+      }
+      const special = parent && /^(rootobject|visibleparent)$/i.test(parent);
+      let PM = new THREE.Matrix4();
+      if (parent && !special) {
+        if (objects.has(parent)) PM = objects.get(parent);
+      }
+      const M = PM.clone().multiply(trs(pos, rot, scale || [1, 1, 1]));
+      objects.set(sub, M);
+      if (mesh && visible) bake(meshName, mesh, M, sub);
+    };
+    place("__main__", ini.get("Models", "ResourcesMesh", ""), "", [0, 0, 0], [0, 0, 0], null, true, "", "");
+    for (const sm of ini.submodels()) {
+      if (!ini.has(sm)) { log.push(`[${sm}] section missing.`); continue; }
+      const vis = !/^false$/i.test(ini.get(sm, "IsVisible", "true"));
+      place(sm, ini.get(sm, "Mesh", ""), ini.get(sm, "Parent", ""), ini.vec(sm, "Position"), ini.vec(sm, "Rotation"),
+        ini.get(sm, "Scale") !== undefined ? ini.vec(sm, "Scale", [1, 1, 1]) : null, vis,
+        ini.get(sm, "ResourcesMeshFolder", ""), ini.get(sm, "RootMesh", ""));
+    }
+    if (missing.length) log.push(`Not found in ${rootFile.name}: ${missing.join(", ")}.`);
+    // hide the stores the Transport loadout hides (Default where there is no Transport loadout)
+    const secs = [...ini.sections.keys()];
+    const loadout = secs.some(s => /^WeaponSystem\d+Transport$/.test(s)) ? "Transport" : "Default";
+    const hidden = new Set();
+    for (const s of secs) if (new RegExp("^WeaponSystem\\d+" + loadout + "$").test(s))
+      for (const x of (ini.get(s, "SubModelsToHide", "") || "").split(",")) if (x.trim()) hidden.add(x.trim());
+    const descends = (sub, anc) => { for (let n = 0; sub && n < 20; n++) { if (sub === anc) return true; sub = ini.get(sub, "Parent", ""); } return false; };
+    if (hidden.size) parts.splice(0, parts.length, ...parts.filter(p => ![...hidden].some(hd => descends(p.submodel, hd))));
+    var refsU = [], rotorsU = [];
+    for (const [sec, kv] of ini.sections) if (kv.has("attachmentpointposition"))
+      refsU.push({ kind: "attach", type: ini.get(sec, "Type", ""), label: `${sec} ${ini.get(sec, "SystemName", "")} (${ini.get(sec, "Type", "")})`, p: ini.vec(sec, "AttachmentPointPosition") });
+    const nrot = parseInt(ini.get("FlightControls", "NumberOfRotors", "0"), 10) || 0;
+    for (let i = 1; i <= nrot; i++) {
+      const model = ini.get("FlightControls", `Rotor${i}_Model`), disc = ini.get("FlightControls", `Rotor${i}_DiscModel`);
+      const typ = (ini.get("FlightControls", `Rotor${i}_Type`, "") || "").toLowerCase();
+      const axis = (ini.get("FlightControls", `Rotor${i}_RotationAxis`, "Y") || "Y").toUpperCase().slice(-1);
+      if (!objects.has(model)) { log.push(`Rotor${i}: model '${model}' not loaded.`); continue; }
+      const M = objects.get(model);
+      const hub = new THREE.Vector3().setFromMatrixPosition(M);
+      const ax = new THREE.Vector3(axis === "X" ? 1 : 0, axis === "Y" || !"XZ".includes(axis) ? 1 : 0, axis === "Z" ? 1 : 0).transformDirection(M);
+      if (ax.y < 0) ax.negate();
+      let radius = 0;
+      for (const sel of [p => p.submodel === disc, p => p.cat === "rotor" && descends(p.submodel, model)]) {
+        const ps = parts.filter(sel);
+        if (!ps.length) continue;
+        const d = new THREE.Vector3();
+        for (const p of ps) for (let k = 0; k < p.V.length; k += 3) {
+          d.set(p.V[k] - hub.x, p.V[k + 1] - hub.y, p.V[k + 2] - hub.z);
+          d.addScaledVector(ax, -d.dot(ax));
+          radius = Math.max(radius, d.length());
+        }
+        break;
+      }
+      rotorsU.push({ type: typ, hub: hub.toArray(), axis: ax.toArray(), radius });
+      refsU.push({ kind: "rotor", label: `Rotor${i} ${typ} hub (${model})`, p: hub.toArray() });
+    }
+  }
+  const refs = refsU || [], rotors = rotorsU || [];
+  const est = estimateUser(parts.filter(p => p.cat !== "disc" && p.cat !== "crew" && p.cat !== "gear" && p.cat !== "rotor"), refs, rotors, "Starboard");
+  // to the page frame: meters, Z negated (and winding flipped) so three.js shows it unmirrored
+  const page = p => [p[0] * M_PER_UNIT, p[1] * M_PER_UNIT, -p[2] * M_PER_UNIT];
+  const byCat = new Map();
+  for (const p of parts) if (p.cat !== "disc") { if (!byCat.has(p.cat)) byCat.set(p.cat, []); byCat.get(p.cat).push(p); }
+  const meshes = [];
+  for (const [cat, ps] of byCat) {
+    const nv = ps.reduce((a, p) => a + p.V.length, 0), ni = ps.reduce((a, p) => a + p.T.length, 0);
+    const pos = new Float32Array(nv), idx = new Uint32Array(ni);
+    let vo = 0, io = 0;
+    for (const p of ps) {
+      for (let k = 0; k < p.V.length; k += 3) { pos[vo + k] = p.V[k] * M_PER_UNIT; pos[vo + k + 1] = p.V[k + 1] * M_PER_UNIT; pos[vo + k + 2] = -p.V[k + 2] * M_PER_UNIT; }
+      for (let k = 0; k < p.T.length; k += 3) { idx[io + k] = p.T[k] + vo / 3; idx[io + k + 1] = p.T[k + 2] + vo / 3; idx[io + k + 2] = p.T[k + 1] + vo / 3; }
+      vo += p.V.length; io += p.T.length;
+    }
+    meshes.push({ cat, pos, idx });
+  }
+  return {
+    label: iniName, inis: [iniName], side: "Starboard", user: true, meshes,
+    refs: refs.map(r => ({ kind: r.kind, label: r.label, p: page(r.p).map(v => +v.toFixed(4)) })),
+    rotors: rotors.map(r => ({ type: r.type, hub: page(r.hub), axis: [r.axis[0], r.axis[1], -r.axis[2]], radius: r.radius * M_PER_UNIT })),
+    est: page(est.p).map(v => +v.toFixed(3)), estFrom: est.from,
+  };
+}
+
+// Starting point (the rule of ../winch-tuner/estimate.py), in Unity units: fore and aft at the
+// dipping-sonar attachment point or the main rotor hub, at the top of the cabin side wall,
+// 0.5 m outside the skin on the hoist side.
+function estimateUser(parts, refs, rotors, side) {
+  const u = 1 / M_PER_UNIT;
+  const tris = [];
+  for (const p of parts) for (let k = 0; k < p.T.length; k += 3)
+    for (const j of [p.T[k], p.T[k + 1], p.T[k + 2]]) tris.push(p.V[j * 3], p.V[j * 3 + 1], p.V[j * 3 + 2]);
+  const raycast = (o, d) => {
+    const hits = [];
+    for (let k = 0; k < tris.length; k += 9) {
+      const e1 = [tris[k + 3] - tris[k], tris[k + 4] - tris[k + 1], tris[k + 5] - tris[k + 2]];
+      const e2 = [tris[k + 6] - tris[k], tris[k + 7] - tris[k + 1], tris[k + 8] - tris[k + 2]];
+      const pv = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]];
+      const det = e1[0] * pv[0] + e1[1] * pv[1] + e1[2] * pv[2];
+      if (Math.abs(det) < 1e-14) continue;
+      const inv = 1 / det, s = [o[0] - tris[k], o[1] - tris[k + 1], o[2] - tris[k + 2]];
+      const uu = (s[0] * pv[0] + s[1] * pv[1] + s[2] * pv[2]) * inv;
+      if (uu < 0 || uu > 1) continue;
+      const q = [s[1] * e1[2] - s[2] * e1[1], s[2] * e1[0] - s[0] * e1[2], s[0] * e1[1] - s[1] * e1[0]];
+      const vv = (d[0] * q[0] + d[1] * q[1] + d[2] * q[2]) * inv;
+      if (vv < 0 || uu + vv > 1) continue;
+      const t = (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]) * inv;
+      if (t > 1e-9) hits.push(t);
+    }
+    return hits.sort((a, b) => a - b);
+  };
+  const mains = rotors.filter(r => r.type === "main");
+  const pool = mains.length ? mains : rotors;
+  const hub = pool.length ? pool.reduce((a, b) => (b.hub[2] > a.hub[2] ? b : a)).hub : [0, 0, 0];
+  const sonar = refs.find(r => r.kind === "attach" && (r.type || "").toLowerCase() === "sonar");
+  const z0 = sonar ? sonar.p[2] : hub[2];
+  const from = sonar ? "dipping-sonar attachment point" : (pool.length ? "main rotor hub" : "model origin");
+  const sg = side === "Starboard" ? 1 : -1;
+  let top = null, bot = null;
+  for (const xo of [0, 0.3 * u * sg, -0.3 * u * sg]) {
+    const h = raycast([xo, 50 * u, z0], [0, -1, 0]);
+    if (h.length) { top = 50 * u - h[0]; const hb = raycast([xo, -50 * u, z0], [0, 1, 0]); bot = hb.length ? -50 * u + hb[0] : top - 3 * u; break; }
+  }
+  if (top === null) { top = hub[1]; bot = hub[1] - 3 * u; }
+  const ys = [], xs = [];
+  const hi = Math.min(top, hub[1] - 0.3 * u);
+  for (let y = bot + 0.35 * (top - bot); y <= hi; y += 0.025 * u) {
+    const h = raycast([sg * 20 * u, y, z0], [-sg, 0, 0]);
+    if (h.length) { ys.push(y); xs.push(20 * u - h[0]); }
+  }
+  let yh, xs0;
+  if (xs.length) {
+    const wmax = Math.max(...xs);
+    let best = -1;
+    xs.forEach((x, k) => { if (x >= wmax - 0.12 * u && (best < 0 || ys[k] > ys[best])) best = k; });
+    yh = ys[best]; xs0 = sg * xs[best];
+  } else { yh = bot + 0.65 * (top - bot); xs0 = sg * u; }
+  return { p: [xs0 + sg * 0.5 * u, yh, z0], from };
+}
+
+
+
+// ---------- ship analysis (from the Hover Spot Review) ----------
+// ---------- analysis (ports of research/analyze.py) ----------
+const cell = (m, x, z) => [Math.floor((z - m.z0) / G), Math.floor((x - m.x0) / G)];
+function deckHeight(m, x, z) {
+  const [iz, ix] = cell(m, x, z), k = Math.floor(0.012 / G + 1e-9), v = [];
+  for (let a = Math.max(0, iz - k); a <= Math.min(m.nz - 1, iz + k); a++)
+    for (let b = Math.max(0, ix - k); b <= Math.min(m.nx - 1, ix + k); b++) { const h = m.H[a * m.nx + b]; if (isFinite(h)) v.push(h); }
+  if (!v.length) return NaN;
+  v.sort((p, q) => p - q);
+  const n = v.length;
+  return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2;
+}
+// thin structures standing more than 3 m above the spot deck: 4-connected components of <= 40 cells
+function mastMask(m, h) {
+  const n = m.nx * m.nz, tall = new Uint8Array(n), out = new Uint8Array(n), seen = new Uint8Array(n);
+  for (let i = 0; i < n; i++) tall[i] = isFinite(m.H[i]) && (m.H[i] - h) * MPU > MAST_MIN_M ? 1 : 0;
+  const queue = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    if (!tall[i] || seen[i]) continue;
+    let head = 0, tail = 0; queue[tail++] = i; seen[i] = 1;
+    while (head < tail) {
+      const c = queue[head++], a = (c / m.nx) | 0, b = c - a * m.nx;
+      if (a > 0 && tall[c - m.nx] && !seen[c - m.nx]) { seen[c - m.nx] = 1; queue[tail++] = c - m.nx; }
+      if (a < m.nz - 1 && tall[c + m.nx] && !seen[c + m.nx]) { seen[c + m.nx] = 1; queue[tail++] = c + m.nx; }
+      if (b > 0 && tall[c - 1] && !seen[c - 1]) { seen[c - 1] = 1; queue[tail++] = c - 1; }
+      if (b < m.nx - 1 && tall[c + 1] && !seen[c + 1]) { seen[c + 1] = 1; queue[tail++] = c + 1; }
+    }
+    if (tail <= MAST_MAX_CELLS) for (let j = 0; j < tail; j++) out[queue[j]] = 1;
+  }
+  return out;
+}
+function clearRadius(m, H, x, z, h, thr) {
+  const [iz, ix] = cell(m, x, z), k = Math.floor(RMAX / G + 1e-9);
+  let best = Infinity;
+  for (let a = Math.max(0, iz - k); a < Math.min(m.nz, iz + k + 1); a++)
+    for (let b = Math.max(0, ix - k); b < Math.min(m.nx, ix + k + 1); b++)
+      if (H[a * m.nx + b] > h + thr) best = Math.min(best, Math.hypot((a - iz) * G, (b - ix) * G));
+  return isFinite(best) ? best : RMAX;
+}
+// per 15-degree bearing: tallest structure above the deck in a 16 m corridor out to 60 m (0 = ahead, 90 = starboard)
+function sectors(m, H, x, z, h) {
+  const reach = 60 / MPU, hw = 8 / MPU, [iz, ix] = cell(m, x, z), k = Math.floor(reach / G) + 1;
+  const a0 = Math.max(0, iz - k), a1 = Math.min(m.nz, iz + k + 1), b0 = Math.max(0, ix - k), b1 = Math.min(m.nx, ix + k + 1);
+  const out = [];
+  for (let br = 0; br < 360; br += 15) {
+    const th = br * Math.PI / 180, ux = Math.sin(th), uz = Math.cos(th);
+    let best = -Infinity;
+    for (let a = a0; a < a1; a++) {
+      const dz = (a - iz) * G;
+      for (let b = b0; b < b1; b++) {
+        const v = H[a * m.nx + b];
+        if (!isFinite(v)) continue;
+        const dx = (b - ix) * G, along = dx * ux + dz * uz;
+        if (along <= 0 || along > reach || Math.abs(-dx * uz + dz * ux) > hw) continue;
+        if (v - h > best) best = v - h;
+      }
+    }
+    out.push([br, isFinite(best) ? best * MPU : 0]);
+  }
+  return out;
+}
+function ranges(secs, test) {
+  const on = secs.filter(s => test(s[1])).map(s => s[0]);
+  if (!on.length) return "none";
+  if (on.length === secs.length) return "all round";
+  const s = new Set(on), out = [];
+  const starts = on.filter(b => !s.has(((b - 15) % 360 + 360) % 360)).sort((p, q) => p - q);
+  const f = b => String(b).padStart(3, "0") + "\u00b0";
+  for (const b0 of starts) {
+    let b = b0;
+    while (s.has((b + 15) % 360)) b = (b + 15) % 360;
+    out.push(b === b0 ? f(b0) : f(b0).slice(0, -1) + "\u2013" + f(b));
+  }
+  return out.join(", ");
+}
+function analyze(m, x, z) {
+  const h = deckHeight(m, x, z);
+  const masts = mastMask(m, h);
+  const Hn = m.H.slice();
+  for (let i = 0; i < Hn.length; i++) if (masts[i]) Hn[i] = h;
+  return { h, masts, secs: sectors(m, Hn, x, z, h), r2: clearRadius(m, Hn, x, z, h, 2 / MPU), r10: clearRadius(m, Hn, x, z, h, 10 / MPU) };
+}
+
+// ---------- uploaded ships: assemble like the game, then rasterize like analyze.py's HMap ----------
+function assembleShip(ini, objFiles, log) {
+  const parsed = new Map();
+  const objFor = (file, mirror) => { const k = file.name + "|" + mirror; if (!parsed.has(k)) parsed.set(k, parseObj(file.text, mirror)); return parsed.get(k); };
+  const findFile = path => objFiles.find(f => f.name.toLowerCase() === baseName(path));
+  const tris = [];
+  const keepMesh = name => !(SKIP.test(name) || DAMAGED.test(name) || NONSTRUCT.some(k => name.toLowerCase().includes(k)));
+  const bake = (mesh, M) => {
+    const v = new THREE_LITE.Vec(), p = [];
+    for (let k = 0; k < mesh.V.length; k += 3) { v.set(mesh.V[k], mesh.V[k + 1], mesh.V[k + 2]); v.apply(M); p.push(v.x, v.y, v.z); }
+    for (let k = 0; k < mesh.T.length; k++) { const j = mesh.T[k] * 3; tris.push(p[j], p[j + 1], p[j + 2]); }
+  };
+  let root = new Map(), rootFile = null, mirror = false;
+  if (ini) {
+    const rr = ini.get("Models", "ResourcesRoot", "");
+    mirror = /CORRECT_OBJ_ORIENTATION/i.test(rr);
+    const rootName = rr.split(",")[0].trim();
+    rootFile = findFile(rootName) || (objFiles.length && /\.obj$/i.test(rootName) ? objFiles[0] : null);
+    if (rootFile && rootFile.name.toLowerCase() !== baseName(rootName)) log.push(`Using ${rootFile.name} for ResourcesRoot=${rootName}.`);
+    if (!rootFile) log.push(objFiles.length ? `No loaded .obj matches ResourcesRoot=${rootName || "(none)"}.` : "");
+  } else if (objFiles.length) rootFile = objFiles[0];
+  if (rootFile) root = objFor(rootFile, mirror);
+  if (!ini) {
+    for (const [name, mesh] of root) if (keepMesh(name)) bake(mesh, THREE_LITE.identity());
+  } else {
+    const objects = new Map(), missing = [];
+    const place = (sub, meshName, parent, pos, rot, scale, visible, altFolder, rootMesh) => {
+      let mesh = null;
+      if (meshName) {
+        mesh = root.get(meshName) || null;
+        if (!mesh && altFolder) { const f = findFile(rootMesh || ""); if (f) mesh = objFor(f, /CORRECT_OBJ_ORIENTATION/i.test(rootMesh)).get(meshName) || null; }
+        if (!mesh && rootFile) { if (!altFolder) missing.push(meshName); return; }
+      }
+      let PM = THREE_LITE.identity();
+      if (parent && !/^(rootobject|visibleparent)$/i.test(parent) && objects.has(parent)) PM = objects.get(parent);
+      const M = THREE_LITE.mul(PM, THREE_LITE.trs(pos, rot, scale || [1, 1, 1]));
+      objects.set(sub, M);
+      if (mesh && visible && keepMesh(meshName)) bake(mesh, M);
+    };
+    place("__main__", ini.get("Models", "ResourcesMesh", ""), "", [0, 0, 0], [0, 0, 0], null, true, "", "");
+    for (const sm of ini.submodels()) {
+      if (!ini.has(sm)) { log.push(`[${sm}] section missing.`); continue; }
+      place(sm, ini.get(sm, "Mesh", ""), ini.get(sm, "Parent", ""), ini.vec(sm, "Position"), ini.vec(sm, "Rotation"),
+        ini.get(sm, "Scale") !== undefined ? ini.vec(sm, "Scale", [1, 1, 1]) : null, !/^false$/i.test(ini.get(sm, "IsVisible", "true")),
+        ini.get(sm, "ResourcesMeshFolder", ""), ini.get(sm, "RootMesh", ""));
+    }
+    if (missing.length) log.push(`Not found in ${rootFile.name}: ${missing.join(", ")}.`);
+  }
+  return new Float32Array(tris);
+}
+function rasterize(T) {
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (let k = 0; k < T.length; k += 3) { x0 = Math.min(x0, T[k]); x1 = Math.max(x1, T[k]); z0 = Math.min(z0, T[k + 2]); z1 = Math.max(z1, T[k + 2]); }
+  x0 -= 0.03; z0 -= 0.03;
+  const nx = Math.floor((x1 + 0.03 - x0) / G) + 1, nz = Math.floor((z1 + 0.03 - z0) / G) + 1, n = nx * nz;
+  const Hs = new Float32Array(n).fill(-Infinity), Ht = new Float32Array(n).fill(-Infinity);
+  const len = (a, b) => Math.hypot(T[b] - T[a], T[b + 1] - T[a + 1], T[b + 2] - T[a + 2]);
+  for (let t = 0; t < T.length; t += 9) {
+    const A = t, B = t + 3, C = t + 6;
+    const e = [len(A, B), len(B, C), len(C, A)], k = e.indexOf(Math.max(...e)), longest = e[k];
+    const ex = [[A, B], [B, C], [C, A]][k];
+    const abx = T[B] - T[A], aby = T[B + 1] - T[A + 1], abz = T[B + 2] - T[A + 2], acx = T[C] - T[A], acy = T[C + 1] - T[A + 1], acz = T[C + 2] - T[A + 2];
+    const area2 = Math.hypot(aby * acz - abz * acy, abz * acx - abx * acz, abx * acy - aby * acx);
+    const alt = area2 / Math.max(longest, 1e-9), slope = Math.abs(T[ex[1] + 1] - T[ex[0] + 1]) / Math.max(longest, 1e-9);
+    const thin = alt < 0.0012 && longest > 0.012 && slope < 0.7, H = thin ? Ht : Hs;
+    const nv = Math.min(4000, Math.max(1, Math.ceil(longest / (G * 0.6))));
+    for (let i = 0; i <= nv; i++) for (let j = 0; i + j <= nv; j++) {
+      const w0 = i / nv, w1 = j / nv, w2 = 1 - w0 - w1;
+      const px = T[A] * w0 + T[B] * w1 + T[C] * w2, py = T[A + 1] * w0 + T[B + 1] * w1 + T[C + 1] * w2, pz = T[A + 2] * w0 + T[B + 2] * w1 + T[C + 2] * w2;
+      const idx = Math.floor((pz - z0) / G) * nx + Math.floor((px - x0) / G);
+      if (py > H[idx]) H[idx] = py;
+    }
+  }
+  // thin geometry lying on a solid surface merges into it; thin geometry floating above it is wires
+  const W = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    if (!isFinite(Ht[i])) continue;
+    if (Ht[i] > (isFinite(Hs[i]) ? Hs[i] : -1) + 0.01) W[i] = 1; else if (Ht[i] > Hs[i]) Hs[i] = Ht[i];
+  }
+  return { x0, z0, nx, nz, H: Hs, W };
+}
+// small matrix helpers for the uploaded model's submodel placement (Unity: rotate Z, then X, then Y)
+const THREE_LITE = {
+  Vec: class { set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; } apply(M) { const { x, y, z } = this; this.x = M[0] * x + M[1] * y + M[2] * z + M[3]; this.y = M[4] * x + M[5] * y + M[6] * z + M[7]; this.z = M[8] * x + M[9] * y + M[10] * z + M[11]; return this; } },
+  identity: () => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+  mul(A, B) {
+    const o = [];
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) o.push(A[r * 4] * B[c] + A[r * 4 + 1] * B[4 + c] + A[r * 4 + 2] * B[8 + c] + (c === 3 ? A[r * 4 + 3] : 0));
+    return o;
+  },
+  trs(p, r, s) {
+    const [ax, ay, az] = r.map(d => d * Math.PI / 180), cx = Math.cos(ax), sx = Math.sin(ax), cy = Math.cos(ay), sy = Math.sin(ay), cz = Math.cos(az), sz = Math.sin(az);
+    const R = [cy * cz + sy * sx * sz, -cy * sz + sy * sx * cz, sy * cx, cx * sz, cx * cz, -sx, -sy * cz + cy * sx * sz, sy * sz + cy * sx * cz, cy * cx];
+    return [R[0] * s[0], R[1] * s[1], R[2] * s[2], p[0], R[3] * s[0], R[4] * s[1], R[5] * s[2], p[1], R[6] * s[0], R[7] * s[1], R[8] * s[2], p[2]];
+  },
+};
+
+
+// ---------- help text: the "Information for modders" tables, word for word ----------
+const HELP = {
+  "helicopter.HIFR": "Fitted for in-flight refueling from a ship.",
+  "helicopter.Hoist": "Can hoist passengers, troops and survivors to and from a ship.",
+  "helicopter.HoistSecondsUp": "Time in seconds to winch one person up to the helicopter.",
+  "helicopter.HoistSecondsDown": "Time in seconds to winch one person down to the ship.",
+  "helicopter.RotorRadius": "Radius of the rotors, in meters. For keeping the rotor clear of the ship. 8m is about the radius of the rotors on the Ka-27, for reference.",
+  "helicopter.HoistPosition": "Where the winch line leaves the helicopter, defined the same as AttachmentPointPosition=: x starboard, y up, z forward, in game units (1 unit = 67.2 m). Without it, the mod makes a best-guess estimate.",
+  "ship.HIFR": "Whether the ship can refuel a helicopter.",
+  "ship.Hoist": "Whether the ship can transfer passengers to and from a helicopter.",
+  "ship.HIFRRate": "Fuel transfer rate in kg/s. 2.5 is the US Navy standard for a modern HIFR-capable ship; use about 1.3 for reduced-rate ships (e.g., older vessels with retrofitted systems).",
+  "ship.AllowHelicopters": "The helicopters that can perform a VERTREP with this ship. Select \"All\" to allow any helicopter, including modded helicopters. Note: a modded helicopter must still have [HelicopterLoading] configured properly to work with this mod.",
+  "ship.HoverSpot": "Only for ships without a defined [FlightDeck]. The point above which the aircraft hovers while loading/unloading, defined the same as [RecoveryPoint] Position=: x starboard, y up, z forward.",
+  "ship.HoverHeading": "With HoverSpot only. Equivalent to [RecoveryPoint] Rotation=. Adjust this for smaller ships where helicopters aligned fore-and-aft might clip through the superstructure.",
+  "ship.HoverApproachBearing": "Only necessary for ships where the HoverSpot isn't at the stern. The relative bearing from which the helicopter makes its final approach. 180 is from astern; if the helicopter landing spot is at the bow or amidships, it's better to approach from the side to avoid clipping through the superstructure.",
+  "ship.HoverApproachSide": "The direction from which the helicopter makes its final approach. Most helicopters should approach from their HoistSide; this parameter allows for overriding that value on a per-ship basis. It's useful for aircraft carriers where the helicopter landing pad is accessible from one direction but not the other (because it's blocked by the superstructure).\n\nThe default is Port for a ship whose Role includes Carrier or CVS (assuming the island is on the starboard side) and Hoist for every other ship.",
+  "ship.HIFRStationPosition": "HIFR only. The mod spawns a reel for the fuel hose during refueling operations. By default, the mod will look for open space on the deck forward of the HoverSpot; this parameter allows for manually overriding that position.",
+};
+// t: bool (Yes/No, written True/False), num, pick (select), multi (helicopter list), point (set on the view);
+// label: shown in place of the key; ph: shown when empty (the mod's default)
+const FIELDS = {
+  helicopter: [
+    { k: "HIFR", label: "Refueling", t: "bool" }, { k: "Hoist", t: "bool" },
+    { k: "RotorRadius", t: "num", ph: "8" },
+    { k: "HoistSecondsUp", t: "num", ph: "45" }, { k: "HoistSecondsDown", t: "num", ph: "40" },
+  ],
+  ship: [
+    { k: "HIFR", label: "Refueling", t: "bool" }, { k: "Hoist", t: "bool" },
+    { k: "AllowHelicopters", label: "Allowed Helicopters", t: "multi" },
+    { k: "HIFRRate", label: "Fueling rate", t: "num", ph: "2.5" },
+    { k: "HoverHeading", label: "Rotation while hovering", t: "num", ph: "0", when: () => hasHoverSpot() },
+    { k: "HoverApproachBearing", label: "Helicopter Approach Direction", t: "num", ph: "180" },
+    { k: "HoverApproachSide", label: "Helicopter Approach Side", t: "pick", opts: ["", "Port", "Starboard", "Hoist"], ph: "Default" },
+    { k: "HIFRStationPosition", label: "Refueling Hose Location", t: "point", when: () => U && uState().f.HIFR === "True" },
+  ],
+};
+// the mod's default list (helicopter_loading/default_helicopters.ini), then the other base-game helicopters
+const HELOS_DEFAULT = [["usn_sh-2f", "SH-2F"], ["rn_lynx_has2", "Lynx HAS.2"], ["rn_wasp_has1", "Wasp HAS.1"], ["fr_alouette_III", "SA.316"], ["wp_ka-25", "Ka-25PL"], ["wp_ka-25ts", "Ka-25TS"], ["usn_sh-3h", "SH-3H"], ["jmsdf_hss-2", "HSS-2"], ["irina_sh-3d", "ASH-3D IRINA"], ["ara_s-61d", "S-61D"], ["rn_sea_king_has5", "Sea King HAS.5"], ["usaf_hh-3", "HH-3E"], ["rn_wessex_has1", "Wessex HAS.1"], ["rn_wessex_has3", "Wessex HAS.3"], ["rn_wessex_hu5", "Wessex HU.5"], ["wp_ka-27", "Ka-27PL"], ["wp_ka-29", "Ka-29"]];
+const HELOS_OTHER = [["usn_ch-46", "CH-46"], ["fr_sa-321", "SA.321"], ["pla_z-8", "Z-8"], ["wp_mi-14", "Mi-14"], ["fr_alouette_II", "SA.313"], ["fr_as-350", "AS.350"], ["iaf_md500", "MD500 Lahatut"], ["iqaf_md500", "MD500"], ["iriaf_ah-1j", "AH-1J"], ["usmc_ah-1t", "AH-1T"], ["raf_scout_ah1", "Scout AH.1"], ["usn_qh-50c", "QH-50C"], ["usn_qh-50d", "QH-50D"]];
+const DEFAULT_NAMES = HELOS_DEFAULT.map(h => h[0]), VANILLA = new Set([...DEFAULT_NAMES, ...HELOS_OTHER.map(h => h[0])]);
+
+// ---------- the loaded unit ----------
+// U = { key, name, type, iniName, ini, flightDeck, h, built (helicopter), m, a (ship) }
+let U = null;
+const uState = () => state.units[U.key];
+const hasHoverSpot = () => U && U.type === "ship" && !U.flightDeck;
+
+// page frame (three.js, meters): +X starboard, +Y up, -Z forward; .ini frame: +Z forward
+function toIni(v) { return [v[0], v[1], -v[2]]; }
+function fromIni(p) { return new THREE.Vector3(p[0], p[1], -p[2]); }
+
+// ---------- 3D view (helicopters) ----------
+const canvas3 = $("view3");
+const renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 500);
+const controls = new THREE.OrbitControls(camera, canvas3);
+controls.screenSpacePanning = true;
+camera.position.set(9, 5.4, -4.2);   // the default view's angle, so the legend reads before a model is loaded
+controls.update();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(-0.5, 1, 0.6); scene.add(sun);
+const sun2 = new THREE.DirectionalLight(0xffffff, 0.25); sun2.position.set(0.6, -0.3, -0.8); scene.add(sun2);
+const mats = {};
+function makeMats() {
+  const c = n => new THREE.Color(css(n));
+  const opts = { flatShading: true, side: THREE.DoubleSide, roughness: 0.85, metalness: 0.0 };
+  mats.body = new THREE.MeshStandardMaterial(Object.assign({ color: c("--model") }, opts));
+  mats.gear = new THREE.MeshStandardMaterial(Object.assign({ color: c("--gear") }, opts));
+  mats.crew = new THREE.MeshStandardMaterial(Object.assign({ color: c("--crew") }, opts));
+  mats.rotor = new THREE.MeshStandardMaterial(Object.assign({ color: c("--rotor") }, opts));
+  mats.glass = new THREE.MeshStandardMaterial(Object.assign({ color: c("--glass"), transparent: true, opacity: 0.55, depthWrite: false }, opts));
+  mats.edge = new THREE.LineBasicMaterial({ color: c("--edge"), transparent: true, opacity: 0.45 });
+  mats.attach = new THREE.MeshBasicMaterial({ color: c("--attach") });
+  mats.hub = new THREE.MeshBasicMaterial({ color: c("--hub") });
+  mats.disc = new THREE.MeshBasicMaterial({ color: c("--disc"), transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false });
+  mats.discEdge = new THREE.LineBasicMaterial({ color: c("--disc"), transparent: true, opacity: 0.6 });
+  mats.marker = new THREE.MeshBasicMaterial({ color: c("--winch"), depthTest: false, transparent: true });
+  mats.rope = new THREE.LineBasicMaterial({ color: c("--rope") });
+  mats.person = new THREE.MeshStandardMaterial({ color: c("--person"), flatShading: true });
+  renderer.setClearColor(new THREE.Color(css("--view-ground")));
+}
+makeMats();
+function buildHelo(h) {
+  const group = new THREE.Group(), pickables = [], box = new THREE.Box3();
+  for (const g of h.meshes) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(g.pos, 3));
+    geo.setIndex(new THREE.BufferAttribute(g.idx, 1));
+    geo.computeVertexNormals(); geo.computeBoundingSphere(); geo.computeBoundingBox();
+    box.union(geo.boundingBox);
+    const mesh = new THREE.Mesh(geo, mats[g.cat]);
+    if (g.cat === "glass") mesh.renderOrder = 2;
+    group.add(mesh);
+    pickables.push(mesh);
+    if (g.cat !== "glass") group.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 28), mats.edge));
+  }
+  const modelBox = box.isEmpty() ? null : box.clone();
+  if (box.isEmpty()) {   // .ini only: frame the reference points
+    box.expandByPoint(new THREE.Vector3(-2, -1, -4)); box.expandByPoint(new THREE.Vector3(2, 2, 4));
+    for (const r of h.refs) box.expandByPoint(new THREE.Vector3(r.p[0], r.p[1], r.p[2]));
+  }
+  for (const r of h.rotors) {
+    if (r.type !== "main" && r.type !== "") continue;
+    const holder = new THREE.Group();
+    holder.add(new THREE.Mesh(new THREE.CircleGeometry(r.radius, 96), mats.disc));
+    holder.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(
+      Array.from({ length: 128 }, (_, k) => new THREE.Vector3(Math.cos(k / 128 * 2 * Math.PI) * r.radius, Math.sin(k / 128 * 2 * Math.PI) * r.radius, 0))), mats.discEdge));
+    holder.position.set(r.hub[0], r.hub[1], r.hub[2]);
+    holder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(r.axis[0], r.axis[1], r.axis[2]));
+    group.add(holder);
+  }
+  const sph = new THREE.SphereGeometry(0.09, 12, 8);
+  for (const r of h.refs) {
+    const m = new THREE.Mesh(sph, r.kind === "attach" ? mats.attach : mats.hub);
+    m.position.set(r.p[0], r.p[1], r.p[2]); m.renderOrder = 5; group.add(m);
+  }
+  let rMax = 0;
+  for (const r of h.rotors) rMax = Math.max(rMax, r.radius);
+  box.expandByPoint(new THREE.Vector3(rMax, 0, rMax)); box.expandByPoint(new THREE.Vector3(-rMax, 0, -rMax));
+  return { group, pickables, box, modelBox };
+}
+// axis legend: a small copy of the model with the game's axes, turning with the view
+const legendRenderer = new THREE.WebGLRenderer({ canvas: $("legend"), antialias: true, alpha: true });
+legendRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+legendRenderer.setSize(140, 140, false);
+const legendScene = new THREE.Scene();
+const legendCam = new THREE.OrthographicCamera(-1.45, 1.45, 1.45, -1.45, 0.1, 10);
+legendScene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 0.8));
+const legendSun = new THREE.DirectionalLight(0xffffff, 0.5); legendSun.position.set(-0.5, 1, 0.6); legendScene.add(legendSun);
+const legendAxes = new THREE.Group(), legendModel = new THREE.Group();
+legendScene.add(legendAxes); legendScene.add(legendModel);
+function labelSprite(text, color) {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.font = "700 44px Archivo, system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = color; g.fillText(text, 32, 34);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+  s.scale.set(0.42, 0.42, 1); s.renderOrder = 20;
+  return s;
+}
+function buildLegendAxes() {
+  legendAxes.clear();
+  for (const [name, dir, col] of [["X", [1, 0, 0], css("--ax-x")], ["Y", [0, 1, 0], css("--ax-y")], ["Z", [0, 0, -1], css("--ax-z")]]) {
+    const d = new THREE.Vector3(...dir);
+    const arrow = new THREE.ArrowHelper(d, new THREE.Vector3(), 1, new THREE.Color(col).getHex(), 0.22, 0.12);
+    arrow.traverse(o => { if (o.material) { o.material.depthTest = false; o.renderOrder = 15; } });
+    legendAxes.add(arrow);
+    const l = labelSprite(name, col); l.position.copy(d.multiplyScalar(1.24)); legendAxes.add(l);
+  }
+}
+buildLegendAxes();
+function buildLegendModel(built) {
+  legendModel.clear();
+  if (!built || !built.modelBox) {   // stand-in helicopter, nose toward Z
+    legendModel.scale.setScalar(1); legendModel.position.set(0, 0, 0);
+    const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); legendModel.add(m); return m; };
+    add(new THREE.BoxGeometry(0.46, 0.5, 1.05), mats.body, 0, 0, -0.2);
+    add(new THREE.BoxGeometry(0.4, 0.3, 0.3), mats.glass, 0, 0.02, -0.82);
+    add(new THREE.BoxGeometry(0.12, 0.14, 0.95), mats.body, 0, 0.1, 0.8);
+    add(new THREE.BoxGeometry(0.06, 0.38, 0.22), mats.body, 0, 0.3, 1.2);
+    add(new THREE.CylinderGeometry(0.85, 0.85, 0.02, 48), mats.disc, 0, 0.4, -0.1).renderOrder = 3;
+    return;
+  }
+  const c = new THREE.Vector3(), s = new THREE.Vector3();
+  built.modelBox.getCenter(c); built.modelBox.getSize(s);
+  const k = 1.7 / Math.max(s.x, s.y, s.z);
+  for (const m of built.pickables) { const copy = new THREE.Mesh(m.geometry, m.material); copy.renderOrder = m.renderOrder; legendModel.add(copy); }
+  legendModel.scale.setScalar(k);
+  legendModel.position.copy(c).multiplyScalar(-k);
+}
+buildLegendModel(null);
+// winch marker, line and a person on the hook
+const marker = new THREE.Group();
+const ball = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), mats.marker);
+ball.renderOrder = 10; marker.add(ball);
+const rope = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, -LINE_M, 0)]), mats.rope);
+marker.add(rope);
+const person = new THREE.Group();
+(function buildPerson() {
+  const add = (geo, x, y, z) => { const m = new THREE.Mesh(geo, mats.person); m.position.set(x, y, z); person.add(m); };
+  add(new THREE.SphereGeometry(0.11, 12, 8), 0, -0.26, 0);
+  add(new THREE.BoxGeometry(0.42, 0.62, 0.24), 0, -0.73, 0);
+  add(new THREE.BoxGeometry(0.15, 0.88, 0.16), -0.1, -1.49, 0);
+  add(new THREE.BoxGeometry(0.15, 0.88, 0.16), 0.1, -1.49, 0);
+  add(new THREE.BoxGeometry(0.1, 0.62, 0.1), -0.27, -0.75, 0);
+  add(new THREE.BoxGeometry(0.1, 0.62, 0.1), 0.27, -0.75, 0);
+  add(new THREE.BoxGeometry(0.5, 0.06, 0.3), 0, -0.55, 0);
+})();
+person.position.set(0, -LINE_M, 0);
+marker.add(person);
+marker.visible = false;
+scene.add(marker);
+
+let view3 = "default";
+function setView3(v) {
+  view3 = v;
+  for (const btn of document.querySelectorAll("#viewSeg3 button")) btn.classList.toggle("on", btn.dataset.view === v);
+  if (!U || !U.built) return;
+  const b = U.built.box, c = new THREE.Vector3(), s = new THREE.Vector3();
+  b.getCenter(c); b.getSize(s);
+  const d = Math.max(s.x, s.y, s.z) * 1.7, sg = uState().side === "Port" ? -1 : 1;
+  const dir = {
+    default: new THREE.Vector3(sg * 0.75, 0.45, -0.35), port: new THREE.Vector3(-1, 0, 0), stbd: new THREE.Vector3(1, 0, 0),
+    top: new THREE.Vector3(0, 1, 0.0001), front: new THREE.Vector3(0, 0, -1), rear: new THREE.Vector3(0, 0, 1),
+  }[v].normalize();
+  camera.position.copy(c).addScaledVector(dir, d);
+  camera.up.set(0, 1, 0);
+  controls.target.copy(c);
+  controls.update();
+}
+function resize3() {
+  const w = canvas3.clientWidth, h = canvas3.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+// a click (not a drag) on the model places the winch
+const ray = new THREE.Raycaster();
+let down3 = null;
+canvas3.addEventListener("pointerdown", ev => { down3 = [ev.clientX, ev.clientY]; });
+canvas3.addEventListener("pointerup", ev => {
+  if (!down3 || !U || !U.built) return;
+  const moved = Math.hypot(ev.clientX - down3[0], ev.clientY - down3[1]);
+  down3 = null;
+  if (moved > 5) return;
+  const r = canvas3.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1), camera);
+  const hits = ray.intersectObjects(U.built.pickables, false);
+  if (!hits.length) return;
+  const p = hits[0].point, s = uState();
+  s.p = toIni([p.x, p.y, p.z]).map(v => Math.round(v * 1e6) / 1e6); s.touched = true;
+  persist(); updateUI();
+});
+
+// ---------- 2D top view (ships) ----------
+const canvas2 = $("view2"), ctx2 = canvas2.getContext("2d");
+// rotate cursor for the drag handles: two curved arrows turning opposite ways, outlined so it reads on any color
+(function rotateCursor() {
+  const arcs = "<path d='M4.5 10.5A8 8 0 0 1 17.5 6.5'/><path d='M13.6 5.6L17.5 6.5L17.8 2.6'/><path d='M19.5 13.5A8 8 0 0 1 6.5 17.5'/><path d='M10.4 18.4L6.5 17.5L6.2 21.4'/>";
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'>"
+    + "<g stroke='white' stroke-width='4'>" + arcs + "</g><g stroke='black' stroke-width='1.8'>" + arcs + "</g></svg>";
+  document.documentElement.style.setProperty("--rotate-cursor", `url("data:image/svg+xml,${encodeURIComponent(svg)}") 12 12, grab`);
+})();
+const img = document.createElement("canvas"), ictx = img.getContext("2d");
+let v2 = { s: 1, tx: 0, ty: 0 }, view2 = "spot";
+const spotXZ = () => uState().spot;
+function rgb(hex) { const v = parseInt(hex.replace("#", ""), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; }
+function drawImage() {
+  const { m, a } = U, w = m.nz, hgt = m.nx;
+  img.width = w; img.height = hgt;
+  const id = ictx.createImageData(w, hgt), d = id.data;
+  const sea = rgb(css("--sea")), c1 = rgb(css("--h1")), c3 = rgb(css("--h3")), c10 = rgb(css("--h10")), cm = rgb(css("--mast")), cw = rgb(css("--wire"));
+  let lo = Infinity;
+  for (let i = 0; i < m.H.length; i++) if (isFinite(m.H[i]) && m.H[i] < lo) lo = m.H[i];
+  for (let iz = 0; iz < m.nz; iz++) for (let ix = 0; ix < m.nx; ix++) {
+    const i = iz * m.nx + ix, p = (ix * w + iz) * 4, H = m.H[i];
+    let c = sea;
+    if (isFinite(H)) {
+      const rel = (H - a.h) * MPU, g = Math.min(1, Math.max(0, (H - lo) / Math.max(1e-6, a.h - lo + 1e-6))), v = 70 + 110 * g;
+      c = rel > 10 ? c10 : rel > 3 ? c3 : rel > 1 ? c1 : [v, v, v];
+      if (a.masts[i]) c = cm;
+    }
+    if (m.W[i]) c = cw;
+    d[p] = c[0]; d[p + 1] = c[1]; d[p + 2] = c[2]; d[p + 3] = 255;
+  }
+  ictx.putImageData(id, 0, 0);
+}
+function render2() {
+  const w = canvas2.clientWidth, h = canvas2.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  if (!w || !h) return;
+  if (canvas2.width !== Math.round(w * dpr) || canvas2.height !== Math.round(h * dpr)) { canvas2.width = Math.round(w * dpr); canvas2.height = Math.round(h * dpr); }
+  ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx2.fillStyle = css("--sea"); ctx2.fillRect(0, 0, w, h);
+  if (!U || !U.m) return;
+  const { m, a } = U;
+  ctx2.setTransform(dpr * v2.s, 0, 0, dpr * v2.s, dpr * v2.tx, dpr * v2.ty);
+  ctx2.imageSmoothingEnabled = false;
+  ctx2.drawImage(img, 0, 0);
+  const an = anchor();
+  if (!an || !a) return;
+  const [cx, cy] = toCell(an.x, an.z), K = 1 / MPU / G, R = 30 * K, px = 1 / v2.s;
+  // approach sectors, 30 m out
+  ctx2.lineWidth = Math.max(5, 6 * px);
+  for (const [b, dh] of a.secs) {
+    ctx2.strokeStyle = css(dh < 3 ? "--clear" : dh < 10 ? "--low" : "--blocked");
+    ctx2.beginPath(); ctx2.arc(cx, cy, R, (b - 7) * Math.PI / 180, (b + 7) * Math.PI / 180); ctx2.stroke();
+  }
+  // 8 m rotor disc and the helicopter on the spot, nose along the hover heading
+  ctx2.strokeStyle = css("--spotdisc"); ctx2.lineWidth = 1.5 * px;
+  ctx2.beginPath(); ctx2.arc(cx, cy, 8 * K, 0, 2 * Math.PI); ctx2.stroke();
+  const hr = heading() * Math.PI / 180, fw = [Math.cos(hr), Math.sin(hr)], sb = [-Math.sin(hr), Math.cos(hr)];
+  const P = ([f, s]) => [cx + (f * fw[0] + s * sb[0]) * K, cy + (f * fw[1] + s * sb[1]) * K];
+  ctx2.strokeStyle = css("--spotdisc"); ctx2.lineWidth = 1.5 * px; ctx2.lineJoin = "round";
+  for (const shape of HELO_OUTLINE) { ctx2.beginPath(); shape.forEach((p, i) => { const q = P(p); i ? ctx2.lineTo(q[0], q[1]) : ctx2.moveTo(q[0], q[1]); }); if (shape.closed) ctx2.closePath(); ctx2.stroke(); }
+  // the hover spot itself
+  ctx2.fillStyle = css("--spot"); ctx2.strokeStyle = css("--sea"); ctx2.lineWidth = 2 * px;
+  ctx2.beginPath(); ctx2.arc(cx, cy, 5 * px, 0, 2 * Math.PI); ctx2.fill(); ctx2.stroke();
+  if (hasHoverSpot()) {   // rotate handle: a curved double arrow ahead of the nose
+    const rr = HANDLE_HEAD_M * K, a0 = hr - 0.3, a1 = hr + 0.3;
+    ctx2.strokeStyle = css("--spot"); ctx2.fillStyle = css("--spot"); ctx2.lineWidth = 3 * px;
+    ctx2.beginPath(); ctx2.arc(cx, cy, rr, a0, a1); ctx2.stroke();
+    for (const [ang, dir] of [[a0, -1], [a1, 1]]) arrowHead(cx + rr * Math.cos(ang), cy + rr * Math.sin(ang), ang + dir * Math.PI / 2, 9 * px);
+  }
+  // approach direction: the line the helicopter comes in along, with a handle at its outer end
+  const br = bearing() * Math.PI / 180, ux = Math.cos(br), uy = Math.sin(br), r0 = 12 * K, r1 = HANDLE_APPROACH_M * K;
+  ctx2.strokeStyle = css("--spot"); ctx2.fillStyle = css("--spot"); ctx2.lineWidth = 2.5 * px;
+  ctx2.beginPath(); ctx2.moveTo(cx + ux * r1, cy + uy * r1); ctx2.lineTo(cx + ux * r0, cy + uy * r0); ctx2.stroke();
+  arrowHead(cx + ux * r0, cy + uy * r0, br + Math.PI, 10 * px);
+  ctx2.beginPath(); ctx2.arc(cx + ux * r1, cy + uy * r1, 6 * px, 0, 2 * Math.PI); ctx2.fill();
+  // the refueling hose location, when set
+  const st = stationXZ();
+  if (st) {
+    const [sx, sy] = toCell(st.x, st.z);
+    ctx2.strokeStyle = css("--winch"); ctx2.lineWidth = 2.5 * px;
+    ctx2.strokeRect(sx - 6 * px, sy - 6 * px, 12 * px, 12 * px);
+    ctx2.beginPath(); ctx2.arc(sx, sy, 2.5 * px, 0, 2 * Math.PI); ctx2.stroke();
+  }
+}
+function arrowHead(x, y, ang, size) {
+  ctx2.beginPath();
+  ctx2.moveTo(x + Math.cos(ang) * size, y + Math.sin(ang) * size);
+  ctx2.lineTo(x + Math.cos(ang + 2.5) * size, y + Math.sin(ang + 2.5) * size);
+  ctx2.lineTo(x + Math.cos(ang - 2.5) * size, y + Math.sin(ang - 2.5) * size);
+  ctx2.closePath(); ctx2.fill();
+}
+// A generic light helicopter seen from above, in meters (forward, starboard), drawn for this page:
+// fuselage, side engine fairings, tail plane and a port-side tail rotor.
+const HELO_OUTLINE = [
+  Object.assign([[6.2, 0], [5.8, 0.7], [4.8, 1.1], [1.5, 1.2], [0.5, 1.25], [-1.5, 1.0], [-3.0, 0.45], [-8.4, 0.3], [-8.9, 0.25], [-9.3, 0], [-8.9, -0.25], [-8.4, -0.3], [-3.0, -0.45], [-1.5, -1.0], [0.5, -1.25], [1.5, -1.2], [4.8, -1.1], [5.8, -0.7]], { closed: true }),
+  Object.assign([[1.8, 1.25], [1.8, 1.75], [-0.8, 1.75], [-0.8, 1.25]], { closed: true }),
+  Object.assign([[1.8, -1.25], [1.8, -1.75], [-0.8, -1.75], [-0.8, -1.25]], { closed: true }),
+  Object.assign([[-7.3, -1.5], [-7.3, 1.5], [-7.9, 1.5], [-7.9, -1.5]], { closed: true }),
+  [[-10.1, -0.55], [-7.7, -0.55]],
+];
+const HANDLE_HEAD_M = 11, HANDLE_APPROACH_M = 44;
+const toCell = (x, z) => [(z - U.m.z0) / G, (x - U.m.x0) / G];
+const fieldNum = (k, d) => { const v = parseFloat(U ? uState().f[k] : ""); return isFinite(v) ? v : d; };
+const heading = () => hasHoverSpot() ? fieldNum("HoverHeading", 0) : (U.deckPoint ? U.deckPoint.rot : 0);
+const bearing = () => fieldNum("HoverApproachBearing", 180);
+function stationXZ() {
+  if (!U || uState().f.HIFR !== "True") return null;
+  const p = (uState().f.HIFRStationPosition || "").split(",").map(Number);
+  return p.length === 3 && p.every(isFinite) ? { x: p[0], z: p[2] } : null;
+}
+// the point the analysis and drawings use: the hover spot, or the deck's recovery point on a ship with a flight deck
+function anchor() {
+  if (!U || U.type !== "ship" || !U.m) return null;
+  return U.flightDeck ? U.deckPoint || null : spotXZ();
+}
+function setView2(mode) {
+  view2 = mode;
+  if (!U || !U.m) { render2(); return; }
+  const w = canvas2.clientWidth, h = canvas2.clientHeight, m = U.m;
+  const an = anchor();
+  if (mode === "ship" || !an) {
+    v2.s = Math.min(w / (m.nz * 1.06), h / (m.nx * 1.4));
+    v2.tx = (w - m.nz * v2.s) / 2; v2.ty = (h - m.nx * v2.s) / 2;
+  } else {
+    const [c, r] = toCell(an.x, an.z), k = 2 * 50 / MPU / G;
+    v2.s = Math.min(w, h) / k;
+    v2.tx = w / 2 - c * v2.s; v2.ty = h / 2 - r * v2.s;
+  }
+  render2();
+}
+function recomputeShip() {
+  if (!U || !U.m) return;
+  const an = anchor();
+  U.a = an ? analyze(U.m, an.x, an.z) : { h: NaN, masts: new Uint8Array(U.m.H.length), secs: [] };
+  if (!an) { let hi = -Infinity; for (const v of U.m.H) if (isFinite(v)) hi = Math.max(hi, v); U.a.h = hi; }
+  drawImage();
+}
+function moveSpot(x, z) {
+  uState().spot = { x: Math.round(x * 1e4) / 1e4, z: Math.round(z * 1e4) / 1e4, touched: true };
+  persist(); recomputeShip(); updateUI(); render2();
+}
+// Pan by dragging, zoom with the wheel. Over the ship the cursor is a crosshair and a click places
+// the hover spot (or the refueling hose, while that is being selected); the rotate arrow and the
+// approach handle turn the hover heading and the approach direction.
+let drag = null, picking = false;
+function cellUnder(ev) {
+  if (!U || !U.m) return null;
+  const r = canvas2.getBoundingClientRect(), iz = Math.floor((ev.clientX - r.left - v2.tx) / v2.s), ix = Math.floor((ev.clientY - r.top - v2.ty) / v2.s);
+  return iz >= 0 && iz < U.m.nz && ix >= 0 && ix < U.m.nx && isFinite(U.m.H[iz * U.m.nx + ix]) ? [iz, ix] : null;
+}
+function anchorScreen(ev) {
+  const an = anchor(); if (!an) return null;
+  const r = canvas2.getBoundingClientRect(), [c, w] = toCell(an.x, an.z);
+  return { x: r.left + v2.tx + c * v2.s, y: r.top + v2.ty + w * v2.s, px: ev.clientX, py: ev.clientY, k: v2.s / MPU / G };
+}
+function handleUnder(ev) {
+  const a = anchorScreen(ev); if (!a) return null;
+  const dx = a.px - a.x, dy = a.py - a.y, d = Math.hypot(dx, dy), ang = Math.atan2(dy, dx);
+  const br = bearing() * Math.PI / 180;
+  if (Math.hypot(dx - Math.cos(br) * HANDLE_APPROACH_M * a.k, dy - Math.sin(br) * HANDLE_APPROACH_M * a.k) < 12) return "approach";
+  if (hasHoverSpot()) {
+    let da = Math.abs(((ang - heading() * Math.PI / 180) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);
+    if (Math.abs(d - HANDLE_HEAD_M * a.k) < 10 && da < 0.4) return "heading";
+  }
+  return null;
+}
+function angleAt(ev) { const a = anchorScreen(ev); return Math.round(Math.atan2(a.py - a.y, a.px - a.x) * 180 / Math.PI); }
+function setFieldLive(k, v) { uState().f[k] = v; const i = document.querySelector(`#params input[data-key="${k}"]`); if (i) i.value = v; $("out").value = exportText(); render2(); }
+function setCursor(ev) {
+  const h = !drag && handleUnder(ev);
+  canvas2.classList.toggle("onhandle", !!h);
+  canvas2.classList.toggle("offship", !h && (!(hasHoverSpot() || picking) || !cellUnder(ev)));
+}
+canvas2.addEventListener("pointerdown", ev => {
+  const h = handleUnder(ev);
+  drag = { x: ev.clientX, y: ev.clientY, tx: v2.tx, ty: v2.ty, moved: false, handle: h };
+  canvas2.setPointerCapture(ev.pointerId);
+});
+canvas2.addEventListener("pointermove", ev => {
+  if (!drag) { setCursor(ev); return; }
+  if (drag.handle === "heading") { let d = angleAt(ev); if (d > 180) d -= 360; setFieldLive("HoverHeading", String(d)); return; }
+  if (drag.handle === "approach") { setFieldLive("HoverApproachBearing", String((angleAt(ev) + 360) % 360)); return; }
+  const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+  if (Math.hypot(dx, dy) > 4) { drag.moved = true; canvas2.classList.add("panning"); }
+  if (drag.moved) { v2.tx = drag.tx + dx; v2.ty = drag.ty + dy; render2(); }
+});
+canvas2.addEventListener("pointerup", ev => {
+  canvas2.classList.remove("panning");
+  if (drag && drag.handle) persist();
+  else if (drag && !drag.moved) {
+    const c = cellUnder(ev);
+    if (c && picking) {
+      const x = U.m.x0 + (c[1] + 0.5) * G, z = U.m.z0 + (c[0] + 0.5) * G;
+      uState().f.HIFRStationPosition = `${fmt3(x)},${deckHeight(U.m, x, z).toFixed(4)},${fmt3(z)}`;
+      picking = false; persist(); renderFields(); updateExport(); render2();
+    } else if (c && hasHoverSpot()) moveSpot(U.m.x0 + (c[1] + 0.5) * G, U.m.z0 + (c[0] + 0.5) * G);
+  }
+  drag = null;
+  setCursor(ev);
+});
+canvas2.addEventListener("wheel", ev => {
+  ev.preventDefault();
+  const r = canvas2.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top, f = Math.exp(-ev.deltaY * 0.0015);
+  v2.tx = mx - (mx - v2.tx) * f; v2.ty = my - (my - v2.ty) * f; v2.s *= f;
+  render2(); setCursor(ev);
+}, { passive: false });
+
+// ---------- parameters ----------
+let multiOpen = false;
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+// the ship's helicopter list: null = the mod's default list (no AllowHelicopters key)
+// "all" = AllowHelicopters=All: any helicopter, modded ones included
+const ALL_NAMES = [...DEFAULT_NAMES, ...HELOS_OTHER.map(h => h[0])];
+const allowSet = () => { const a = uState().allow; return new Set(a === "all" ? ALL_NAMES : a || DEFAULT_NAMES); };
+function setAllow(names) {
+  const s = uState(), sel = new Set(names);
+  s.allow = !s.custom.length && sel.size === DEFAULT_NAMES.length && DEFAULT_NAMES.every(n => sel.has(n)) ? null : [...sel];
+  persist(); renderFields(); updateExport();
+}
+function allowValue() {
+  const s = uState();
+  if (s.allow === "all") return "All";
+  if (!s.allow && !s.custom.length) return null;
+  const sel = allowSet();
+  return [...DEFAULT_NAMES, ...HELOS_OTHER.map(h => h[0])].filter(n => sel.has(n)).concat(s.custom).join(",");
+}
+function multiPanel() {
+  // the list scrolls; the All/None row and the box for modded helicopters stay in place
+  const s = uState(), sel = allowSet(), panel = el("div", "multi-panel"), list = el("div", "multi-list");
+  const top = el("div", "row");
+  const all = el("button", "btn", "All"), none = el("button", "btn", "None");
+  all.addEventListener("click", () => { s.custom = []; s.allow = "all"; persist(); renderFields(); updateExport(); });
+  none.addEventListener("click", () => { s.custom = []; setAllow([]); });
+  top.append(all, none); panel.append(top);
+  const item = (name, label, checked, onChange) => {
+    const l = el("label"), c = el("input"); c.type = "checkbox"; c.checked = checked;
+    c.addEventListener("change", () => onChange(c.checked));
+    l.append(c, document.createTextNode(label + " "), el("small", "", name)); list.append(l);
+  };
+  const toggle = n => on => { const next = new Set(sel); on ? next.add(n) : next.delete(n); setAllow([...next]); };
+  for (const [n, l] of HELOS_DEFAULT) item(n, l, sel.has(n), toggle(n));
+  list.append(el("hr"));
+  for (const [n, l] of HELOS_OTHER) item(n, l, sel.has(n), toggle(n));
+  if (s.custom.length) list.append(el("hr"));
+  for (const n of s.custom) item(n, n, true, () => { s.custom = s.custom.filter(x => x !== n); setAllow([...sel]); });
+  const add = el("div", "row"), inp = el("input"), btn = el("button", "btn", "Add");
+  inp.type = "text"; inp.spellcheck = false; inp.placeholder = "Modded helicopter .ini name"; inp.setAttribute("aria-label", "Modded helicopter .ini name");
+  const doAdd = () => {
+    if (s.allow === "all") { inp.value = ""; return; }   // All already takes modded helicopters
+    const names = inp.value.split(",").map(x => x.trim().replace(/\.ini$/i, "")).filter(Boolean);
+    for (const n of names) if (!s.custom.includes(n) && !VANILLA.has(n)) s.custom.push(n);
+    const next = new Set(sel); for (const n of names) if (VANILLA.has(n)) next.add(n);
+    setAllow([...next]);
+  };
+  btn.addEventListener("click", doAdd);
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") doAdd(); });
+  add.append(inp, btn); panel.append(list, add);
+  return panel;
+}
+// the button names the helicopters while they fit, else counts them
+function allowLabel(width) {
+  const s = uState(), sel = allowSet();
+  if (s.allow === "all") return "All";
+  if (!s.allow && !s.custom.length) return "Default list";
+  const names = [...HELOS_DEFAULT, ...HELOS_OTHER].filter(h => sel.has(h[0])).map(h => h[1]).concat(s.custom);
+  if (!names.length) return "None";
+  const text = names.join(", "), g = document.createElement("canvas").getContext("2d");
+  g.font = '400 11px "Archivo", ui-sans-serif, system-ui, sans-serif';
+  return g.measureText(text).width <= width ? text : `${names.length} selected`;
+}
+function renderFields() {
+  const box = $("params"); box.textContent = "";
+  if (!U) return;
+  for (const spec of FIELDS[U.type]) {
+    if (spec.when && !spec.when()) continue;
+    const row = el("div", "field"), key = el("span", "key", (spec.label || spec.k) + " ");
+    const help = el("button", "help", "?");
+    help.dataset.tip = U.type + "." + spec.k; help.setAttribute("aria-label", "About " + spec.k); help.setAttribute("aria-expanded", "false");
+    key.append(help); row.append(key);
+    const val = uState().f[spec.k] ?? "";
+    const set = v => { uState().f[spec.k] = v; persist(); if (spec.k === "HIFR") renderFields(); updateExport(); render2(); };
+    let ctl;
+    if (spec.t === "bool") {
+      ctl = el("div", "seg");
+      for (const [v, label] of [["False", "No"], ["True", "Yes"]]) {
+        const b = el("button", "", label);
+        b.classList.toggle("on", (val || "True") === v);
+        b.addEventListener("click", () => set(v));
+        ctl.append(b);
+      }
+    } else if (spec.t === "pick") {
+      ctl = el("select"); ctl.setAttribute("aria-label", spec.k);
+      for (const v of spec.opts) { const o = el("option", "", v || spec.ph); o.value = v; ctl.append(o); }
+      ctl.value = val;
+      ctl.addEventListener("change", () => set(ctl.value));
+    } else if (spec.t === "multi") {
+      ctl = el("button", "multi-btn", allowLabel(98));
+      ctl.setAttribute("aria-expanded", String(multiOpen));
+      ctl.addEventListener("click", () => { multiOpen = !multiOpen; renderFields(); });
+    } else if (spec.t === "point") {
+      ctl = el("span", "pair");
+      if (val) {
+        const reset = el("button", "btn", "Reset");
+        reset.addEventListener("click", () => { picking = false; set(""); renderFields(); });
+        ctl.append(el("span", "val", val), reset);
+      } else {
+        const pick = el("button", "btn", picking ? "Cancel" : "Select");
+        pick.disabled = !U.m;
+        pick.addEventListener("click", () => { picking = !picking; renderFields(); });
+        ctl.append(pick);
+      }
+    } else {
+      ctl = el("input"); ctl.type = "text"; ctl.spellcheck = false; ctl.setAttribute("aria-label", spec.k); ctl.dataset.key = spec.k;
+      ctl.inputMode = "decimal"; ctl.placeholder = spec.ph; ctl.value = val;
+      ctl.addEventListener("input", () => { uState().f[spec.k] = ctl.value.trim(); persist(); updateExport(); render2(); });
+    }
+    row.append(ctl); box.append(row);
+    if (spec.t === "multi" && multiOpen) box.append(multiPanel());
+  }
+}
+
+// ---------- export ----------
+const fmt5 = v => (Math.round(v * 1e5) / 1e5).toFixed(5).replace(/^-0\.00000$/, "0.00000");
+const fmt3 = v => String(+v.toFixed(3));
+const defaultTarget = () => (U.type === "helicopter" ? "aircraft/" : "vessels/") + (U.iniName || U.name + ".ini");
+function hoverSpotValue() {
+  if (!hasHoverSpot()) return null;
+  if (U.m && U.a && isFinite(U.a.h)) { const sp = spotXZ(); return `${fmt3(sp.x)},${U.a.h.toFixed(4)},${fmt3(sp.z)}`; }
+  return U.ini && U.ini.get("HelicopterLoading", "HoverSpot") || null;
+}
+function exportText() {
+  if (!U) return "";
+  const s = uState(), f = s.f, L = [];
+  const opt = k => { if (f[k]) L.push(`${k}=${f[k]}`); };
+  if (state.mode === "extend") L.push("#!extend " + (s.target || defaultTarget()));
+  L.push("[HelicopterLoading]", `HIFR=${f.HIFR || "True"}`, `Hoist=${f.Hoist || "True"}`);
+  if (U.type === "helicopter") {
+    L.push(`HoistSide=${s.side}`, `HoistPosition=${s.p.map(v => fmt5(v / M_PER_UNIT)).join(",")}`, `RotorRadius=${f.RotorRadius || "8"}`);
+    opt("HoistSecondsUp"); opt("HoistSecondsDown");
+  } else {
+    const allow = allowValue();
+    if (allow !== null) L.push(`AllowHelicopters=${allow}`);
+    opt("HIFRRate");
+    const hs = hoverSpotValue();
+    if (hs) { L.push(`HoverSpot=${hs}`); opt("HoverHeading"); }
+    opt("HoverApproachBearing"); opt("HoverApproachSide");
+    if ((f.HIFR || "True") === "True") opt("HIFRStationPosition");
+  }
+  return L.join("\n");
+}
+// Update: the unit's whole .ini, unchanged except for the [HelicopterLoading] section (replaced, or
+// added at the end). Extend: a new file of its own; it must not share the unit file's name, or the
+// game would load it in place of the unit.
+function withSection(text, section) {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n", lines = text.split(/\r?\n/), block = section.split("\n");
+  const start = lines.findIndex(l => /^\s*\[HelicopterLoading\]/i.test(l));
+  if (start < 0) {
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+    return lines.concat(["", ...block, ""]).join(eol);
+  }
+  let end = start + 1;
+  while (end < lines.length && !/^\s*\[/.test(lines[end])) end++;
+  while (end > start + 1 && !lines[end - 1].trim()) end--;
+  return [...lines.slice(0, start), ...block, ...lines.slice(end)].join(eol);
+}
+async function downloadFile() {
+  if (!U) return;
+  let name, text;
+  if (state.mode === "extend") { name = U.name + "_vertrep.ini"; text = exportText().replace(/\n/g, "\r\n") + "\r\n"; }
+  else if (loaded.ini) { name = loaded.ini.name; text = withSection(loaded.ini.text, exportText()); }
+  else return;
+  // Inside a claude.ai artifact a page can only offer files through the viewer's save prompt, which
+  // doesn't take .ini, so there the file comes as .ini.txt. On an ordinary web page it's a plain download.
+  const dl = window.claude && typeof window.claude.use === "function" ? await window.claude.use("downloads").catch(() => null) : null;
+  if (dl) {
+    try { await dl.save({ filename: name + ".txt", data: text }); } catch (e) { /* declined or unavailable */ }
+    return;
+  }
+  const a = el("a"); a.download = name;
+  a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function updateExport() {
+  $("out").value = exportText();
+  $("download").disabled = !U || (state.mode === "update" && !loaded.ini);
+  $("targetRow").hidden = state.mode !== "extend";
+  if (U) $("target").value = uState().target || defaultTarget();
+  for (const b of document.querySelectorAll("#modeSeg button")) b.classList.toggle("on", b.dataset.mode === state.mode);
+}
+
+// ---------- the sidebar and view for the current unit ----------
+function updateUI() {
+  const type = U ? U.type : "helicopter";
+  $("winchCard").hidden = !U || type !== "helicopter";
+  $("spotCard").hidden = !U || type !== "ship";
+  $("paramsCard").hidden = $("exportCard").hidden = !U;
+  $("stage3").hidden = type !== "helicopter";
+  $("stage2").hidden = type !== "ship";
+  $("viewwrap").classList.toggle("ship", type === "ship");
+  const heloOn = !!(U && U.type === "helicopter"), spotOn = !!(hasHoverSpot() && U.m);
+  for (const el of document.querySelectorAll("#winchCard button:not(.help), #winchCard input")) el.disabled = !heloOn;
+  for (const el of document.querySelectorAll("#spotCard button:not(.help), #spotCard input")) el.disabled = !spotOn;
+  $("copy").disabled = !U;
+  $("spotControls").hidden = !!(U && U.type === "ship" && U.flightDeck);
+  if (heloOn) {
+    const s = uState();
+    marker.position.copy(fromIni(s.p)); marker.visible = true;
+    const u = s.p.map(v => v / M_PER_UNIT);
+    $("px").value = fmt5(u[0]); $("py").value = fmt5(u[1]); $("pz").value = fmt5(u[2]);
+    for (const b of document.querySelectorAll("#sideSeg button")) b.classList.toggle("on", b.dataset.side === s.side);
+  } else marker.visible = false;
+  // ship facts
+  const facts = $("spotFacts"); facts.textContent = "";
+  const add = (k, v, c) => { const dt = document.createElement("dt"), dd = document.createElement("dd"); dt.textContent = k; dd.textContent = v; if (c) dd.className = c; facts.append(dt, dd); };
+  if (U && U.type === "ship") {
+    if (U.flightDeck) { const p = document.createElement("dd"); p.style.gridColumn = "1 / -1"; p.textContent = "A ship with a [FlightDeck] uses the existing flight deck as the HoverSpot."; facts.append(p); }
+    if (U.m && U.a && anchor()) {
+      const sp = anchor(), a = U.a, r = v => v >= RMAX - 1e-9 ? "\u2265" + (RMAX * MPU).toFixed(0) + " m" : (v * MPU).toFixed(1) + " m";
+      $("sx").value = fmt3(sp.x); $("sz").value = fmt3(sp.z);
+      add("Deck height", isFinite(a.h) ? (a.h * MPU).toFixed(1) + " m" : "\u2013");
+      add("Clear radius", `${r(a.r2)} under 2 m, ${r(a.r10)} under 10 m`);
+      add("Clear", ranges(a.secs, h => h < 3), "ok");
+      add("Low", ranges(a.secs, h => h >= 3 && h < 10), "warn");
+      add("Blocked", ranges(a.secs, h => h >= 10), "bad");
+    }
+  }
+  updateExport();
+}
+
+// ---------- controls ----------
+for (const b of document.querySelectorAll("#sideSeg button")) b.addEventListener("click", () => {
+  if (!U || U.type !== "helicopter") return;
+  const s = uState();
+  if (s.side !== b.dataset.side) { s.p[0] = -s.p[0]; s.side = b.dataset.side; }
+  persist(); updateUI();
+});
+for (const b of document.querySelectorAll("#winchCard .axis button")) b.addEventListener("click", () => {
+  if (!U || U.type !== "helicopter") return;
+  const s = uState(), ax = +b.dataset.ax;
+  s.p[ax] = Math.round((s.p[ax] + +b.dataset.d * M_PER_UNIT) * 1e6) / 1e6; s.touched = true;
+  persist(); updateUI();
+});
+[["px", 0], ["py", 1], ["pz", 2]].forEach(([id, ax]) => $(id).addEventListener("change", () => {
+  if (!U || U.type !== "helicopter") return;
+  const v = parseFloat($(id).value);
+  if (isFinite(v)) { uState().p[ax] = v * M_PER_UNIT; uState().touched = true; persist(); }
+  updateUI();
+}));
+$("reset").addEventListener("click", () => {
+  if (!U || U.type !== "helicopter") return;
+  const s = uState(); s.p = toIni(U.h.est); s.side = U.h.side; s.touched = false;
+  persist(); updateUI(); setView3(view3);
+});
+for (const b of document.querySelectorAll("#spotCard .axis button")) b.addEventListener("click", () => {
+  if (!hasHoverSpot() || !U.m) return;
+  const sp = spotXZ(), d = +b.dataset.d;
+  if (b.dataset.sax === "0") moveSpot(sp.x + d, sp.z); else moveSpot(sp.x, sp.z + d);
+});
+[["sx", 0], ["sz", 2]].forEach(([id, ax]) => $(id).addEventListener("change", () => {
+  if (!hasHoverSpot() || !U.m) return;
+  const v = parseFloat($(id).value), sp = spotXZ();
+  if (!isFinite(v)) { updateUI(); return; }
+  if (ax === 0) moveSpot(v, sp.z); else moveSpot(sp.x, v);
+}));
+$("spotReset").addEventListener("click", () => {
+  if (!hasHoverSpot() || !U.m) return;
+  uState().spot = defaultSpot(); persist(); recomputeShip(); updateUI(); setView2(view2);
+});
+for (const b of document.querySelectorAll("#viewSeg3 button")) b.addEventListener("click", () => setView3(b.dataset.view));
+for (const b of document.querySelectorAll("#modeSeg button")) b.addEventListener("click", () => { state.mode = b.dataset.mode; persist(); updateExport(); });
+$("target").addEventListener("input", () => { if (U) { uState().target = $("target").value.trim(); persist(); $("out").value = exportText(); } });
+$("download").addEventListener("click", downloadFile);
+$("copy").addEventListener("click", async () => {
+  let ok = false;
+  try { await navigator.clipboard.writeText($("out").value); ok = true; } catch (e) { try { $("out").select(); ok = document.execCommand("copy"); } catch (e2) { ok = false; } }
+  $("copy").textContent = ok ? "Copied" : "Select and copy";
+  setTimeout(() => { $("copy").textContent = "Copy"; }, 2000);
+});
+window.addEventListener("resize", () => { resize3(); setView2(view2); });
+if (window.ResizeObserver) new ResizeObserver(() => { resize3(); render2(); }).observe($("viewwrap"));
+if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  const old = Object.assign({}, mats);
+  makeMats();
+  scene.traverse(o => { if (o.material) for (const k in old) if (o.material === old[k]) { o.material = mats[k]; break; } });
+  legendModel.traverse(o => { if (o.material) for (const k in old) if (o.material === old[k]) { o.material = mats[k]; break; } });
+  buildLegendAxes();
+  if (U && U.m) { drawImage(); render2(); }
+});
+
+// ---------- files: they add up; a new unit .ini replaces the old one; each has a remove button ----------
+function readText(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsText(file); }); }
+const loaded = { ini: null, objs: new Map() };   // ini: {name, ini, text}
+async function addFiles(list) {
+  const log = [];
+  for (const f of list) {
+    const t = await readText(f);
+    if (/\.obj$/i.test(f.name)) { loaded.objs.delete(f.name); loaded.objs.set(f.name, { name: f.name, text: t }); }
+    else if (/\.ini$/i.test(f.name)) {
+      const ini = parseIni(t);
+      if (ini.has("Models")) loaded.ini = { name: f.name, ini, text: t };
+      else log.push(`${f.name} has no [Models] section, so it isn't the unit .ini.`);
+    }
+  }
+  rebuild(log);
+}
+function renderSlots() {
+  const box = $("slots"); box.textContent = "";
+  for (const [kind, names] of [["ini", loaded.ini ? [loaded.ini.name] : []], ["obj", [...loaded.objs.keys()]]]) for (const name of (names.length ? names : [null])) {
+    const row = document.createElement("div"); row.className = "slot";
+    const k = document.createElement("span"); k.className = "k"; k.textContent = "." + kind;
+    const v = document.createElement("span"); v.className = "v" + (name ? "" : " empty"); v.textContent = name || "\u2013";
+    row.append(k, v);
+    if (name) {
+      const x = document.createElement("button"); x.className = "ghost icon"; x.textContent = "\u00d7"; x.setAttribute("aria-label", "Remove " + name);
+      x.addEventListener("click", () => { if (kind === "ini") loaded.ini = null; else loaded.objs.delete(name); rebuild([]); });
+      row.append(x);
+    }
+    box.append(row);
+  }
+}
+function iniIsHelicopter(ini) {
+  return /helicopter/i.test(ini.get("General", "UnitType", "")) || ini.has("FlightControls");
+}
+function defaultSpot() {
+  // the .ini's own HoverSpot if it has one, else the centerline near the stern
+  const hs = U.ini && U.ini.get("HelicopterLoading", "HoverSpot");
+  if (hs) { const p = hs.split(",").map(Number); if (p.length === 3 && p.every(isFinite)) return { x: p[0], z: p[2], touched: false }; }
+  const m = U.m;
+  return m ? { x: 0, z: Math.round((m.z0 + 0.03 + (m.nz * G - 0.06) * 0.08) * 1e4) / 1e4, touched: false } : { x: 0, z: 0, touched: false };
+}
+function newUnitState() {
+  // start from the .ini's own [HelicopterLoading] values where it has them
+  const s = { f: {}, target: "", allow: null, custom: [] }, ini = U.ini;
+  const get = k => ini ? ini.get("HelicopterLoading", k) : undefined;
+  for (const spec of FIELDS[U.type]) { const v = get(spec.k); if (v !== undefined && spec.t !== "multi") s.f[spec.k] = v; }
+  for (const k of ["HIFR", "Hoist"]) s.f[k] = /^false$/i.test(s.f[k] || "") ? "False" : "True";
+  if (U.type === "ship") {
+    const list = get("AllowHelicopters");
+    if (list !== undefined && /^\s*all\s*$/i.test(list)) s.allow = "all";
+    else if (list !== undefined) {
+      const names = list.split(",").map(x => x.trim()).filter(Boolean);
+      s.custom = names.filter(n => !VANILLA.has(n));
+      const v = names.filter(n => VANILLA.has(n));
+      s.allow = !s.custom.length && v.length === DEFAULT_NAMES.length && DEFAULT_NAMES.every(n => v.includes(n)) ? null : v;
+    }
+    // the heading starts from the deck's own recovery point, if the ship has one
+    if (!s.f.HoverHeading && U.deckPoint && U.deckPoint.rot) s.f.HoverHeading = String(U.deckPoint.rot);
+  }
+  if (U.type === "helicopter") {
+    const side = get("HoistSide"), pos = get("HoistPosition");
+    s.side = /^port$/i.test(side || "") ? "Port" : /^starboard$/i.test(side || "") ? "Starboard" : U.h.side;
+    const p = (pos || "").split(",").map(Number);
+    s.p = p.length === 3 && p.every(isFinite) ? p.map(v => v * M_PER_UNIT) : toIni(U.h.est);
+    s.touched = !!pos;
+    if (!s.f.RotorRadius) { const r = Math.max(0, ...U.h.rotors.filter(x => x.type === "main" || x.type === "").map(x => x.radius)); if (r > 0) s.f.RotorRadius = r.toFixed(1); }
+  }
+  return s;
+}
+function rebuild(log) {
+  renderSlots();
+  const objs = [...loaded.objs.values()].reverse();   // newest first
+  const ini = loaded.ini && loaded.ini.ini;
+  // the .ini says what the unit is, so nothing starts until one is loaded
+  const name = loaded.ini ? stem(loaded.ini.name) : null;
+  if (U && U.built) scene.remove(U.built.group);
+  U = null; picking = false; multiOpen = false;
+  if (!loaded.ini && objs.length) log.push("An ini file is required");
+  if (name) {
+    const type = iniIsHelicopter(ini) ? "helicopter" : "ship";
+    U = { key: type + ":" + name, name, type, iniName: loaded.ini.name, ini, flightDeck: ini.has("FlightDeck") };
+    for (const [sec] of ini.sections) if (/^RecoveryPoint/i.test(sec) && ini.get(sec, "Position")) {
+      const p = ini.vec(sec, "Position", [NaN, NaN, NaN]), rot = parseFloat(ini.get(sec, "Rotation", "0"));
+      if (p.every(isFinite)) { U.deckPoint = { x: p[0], z: p[2], rot: isFinite(rot) ? rot : 0 }; break; }
+    }
+    if (type === "helicopter") {
+      U.h = assembleUser(ini, name, objs, log);
+      U.built = buildHelo(U.h);
+      scene.add(U.built.group);
+      buildLegendModel(U.built);
+    } else {
+      const tris = objs.length ? assembleShip(ini, objs, log) : null;
+      if (tris && tris.length) U.m = rasterize(tris);
+      else if (ini && !U.flightDeck) log.push("Load the ship's .obj too, to place the hover spot.");
+    }
+    if (!state.units[U.key] || !state.units[U.key].f) state.units[U.key] = newUnitState();
+    const s = state.units[U.key];
+    if (!Array.isArray(s.custom)) s.custom = [];
+    if (s.allow !== null && s.allow !== "all" && !Array.isArray(s.allow)) s.allow = null;
+    if (type === "helicopter" && (!s.touched || !validP(s.p))) { s.p = s.p && s.touched && validP(s.p) ? s.p : newUnitState().p; }
+    if (type === "ship" && U.m && (!s.spot || !s.spot.touched)) s.spot = defaultSpot();
+    persist();
+    if (U.m) recomputeShip();
+  } else buildLegendModel(null);
+  $("loadLog").textContent = log.filter(Boolean).join(" ");
+  renderFields();
+  updateUI();
+  resize3(); setView3(view3); setView2(view2);
+}
+$("choose").addEventListener("click", () => $("files").click());
+$("files").addEventListener("change", async ev => { await addFiles([...ev.target.files]); ev.target.value = ""; });
+const dropBox = $("drop");
+window.addEventListener("dragover", ev => { ev.preventDefault(); dropBox.classList.add("over"); });
+window.addEventListener("dragleave", ev => { if (!ev.relatedTarget) dropBox.classList.remove("over"); });
+window.addEventListener("drop", ev => { ev.preventDefault(); dropBox.classList.remove("over"); if (ev.dataTransfer && ev.dataTransfer.files.length) addFiles([...ev.dataTransfer.files]); });
+
+// ---------- help: hover or focus shows the card, a click pins it, Escape or a click elsewhere closes ----------
+const tip = $("tip");
+let tipFor = null, pinned = false, hideTimer = 0;
+function showTip(btn) {
+  clearTimeout(hideTimer);
+  if (tipFor && tipFor !== btn) tipFor.setAttribute("aria-expanded", "false");
+  tipFor = btn;
+  tip.textContent = "";
+  if (btn.dataset.tipFor) tip.innerHTML = $(btn.dataset.tipFor).innerHTML;
+  else for (const para of (HELP[btn.dataset.tip] || "").split("\n\n")) { const p = document.createElement("p"); p.textContent = para; tip.append(p); }
+  tip.hidden = false;
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + "px";
+  tip.style.top = Math.max(8, r.bottom + 6 + h > window.innerHeight - 8 ? r.top - 6 - h : r.bottom + 6) + "px";
+  btn.setAttribute("aria-expanded", "true");
+}
+function hideTip() { if (pinned) return; tip.hidden = true; if (tipFor) tipFor.setAttribute("aria-expanded", "false"); tipFor = null; }
+const later = () => { clearTimeout(hideTimer); hideTimer = setTimeout(hideTip, 250); };
+document.addEventListener("mouseover", ev => { const b = ev.target.closest && ev.target.closest(".help"); if (b && !pinned) showTip(b); else if (ev.target.closest && ev.target.closest("#tip")) clearTimeout(hideTimer); });
+document.addEventListener("mouseout", ev => { if (ev.target.closest && (ev.target.closest(".help") || ev.target.closest("#tip"))) later(); });
+document.addEventListener("focusin", ev => { const b = ev.target.closest && ev.target.closest(".help"); if (b && !pinned) showTip(b); });
+document.addEventListener("focusout", ev => { if (ev.target.closest && ev.target.closest(".help")) later(); });
+document.addEventListener("click", ev => {
+  const b = ev.target.closest && ev.target.closest(".help");
+  if (b) { if (pinned && tipFor === b) { pinned = false; hideTip(); } else { pinned = false; showTip(b); pinned = true; } return; }
+  if (pinned && !tip.contains(ev.target)) { pinned = false; hideTip(); }
+});
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") { pinned = false; hideTip(); } });
+
+function loop() {
+  if (!$("stage3").hidden) {
+    controls.update();
+    renderer.render(scene, camera);
+    const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+    legendCam.position.copy(dir).multiplyScalar(4);
+    legendCam.quaternion.copy(camera.quaternion);
+    legendRenderer.render(legendScene, legendCam);
+  }
+  requestAnimationFrame(loop);
+}
+renderSlots();
+renderFields();
+updateUI();
+resize3();
+loop();
+</script>
+</body>
+</html>
